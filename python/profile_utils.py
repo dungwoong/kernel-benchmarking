@@ -52,7 +52,7 @@ def run_experiment(args, torch_tensors, torch_ref, other_tensors, other_kernel):
     
     # try:
     ref = torch_ref(*torch_tensors)
-    o = other_tensors(*other_tensors)
+    o = other_kernel(*other_tensors)
 
     output['allclose'] = torch.allclose(ref, o, atol=args.atol, rtol = args.rtol)
     output['max_abs'], output['max_rel'] = validate(ref, o)
