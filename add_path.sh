@@ -1,1 +1,1 @@
-export PYTHONPATH="$PYTHONPATH:$PWD/python:$PWD/lib"
+export PYTHONPATH="$PYTHONPATH:$PWD/python:$PWD/third_party"

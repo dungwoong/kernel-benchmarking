@@ -1,3 +1,3 @@
 [submodule "fused_kernels_cutedsl"]
-	path = lib/fused_kernels_cutedsl
+	path = third_party/fused_kernels_cutedsl
 	url = https://github.com/dungwoong/fused_kernels_cutedsl.git
