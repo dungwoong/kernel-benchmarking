@@ -26,7 +26,7 @@ def get_args():
     args = parser.parse_args()
     return args
 
-# tensors[-1] must be the output tensor
+
 def run_experiment(args, torch_tensors, torch_ref, other_tensors, other_kernel):
     output = {
         "label": args.label,
@@ -49,15 +49,16 @@ def run_experiment(args, torch_tensors, torch_ref, other_tensors, other_kernel):
         print_keys()
         return
     
+    # NOTE we can add a try catch if we plan to run this in batches
     # try:
     ref = torch_ref(*torch_tensors)
-    o = other_tensors(*other_tensors)
+    o = other_kernel(*other_tensors)
 
     output['allclose'] = torch.allclose(ref, o, atol=args.atol, rtol = args.rtol)
     output['max_abs'], output['max_rel'] = validate(ref, o)
 
     # timing
-    time.sleep(1) # ??
+    time.sleep(1) # Cool GPU for a bit in case we're running a batched job
     output['time_ms'] = do_bench(lambda: other_kernel(*other_tensors))
     # except Exception as e:
     #     print(e)
