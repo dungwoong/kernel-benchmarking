@@ -26,7 +26,6 @@ def get_args():
     args = parser.parse_args()
     return args
 
-
 # tensors[-1] must be the output tensor
 def run_experiment(args, torch_tensors, torch_ref, other_tensors, other_kernel):
     output = {
