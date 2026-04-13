@@ -11,6 +11,10 @@ from dataclasses import dataclass, fields
 
 @dataclass
 class ExperimentOutput:
+    """
+    Enables most gemm-based experiments,
+    metadata helps capture any additional params(e.g. lora dim)
+    """
     label: str
     m: int
     n: int
@@ -66,6 +70,10 @@ def get_max_errors(ref: torch.Tensor, o: torch.Tensor):
     return max_abs, max_rel
 
 def get_args(parse=True):
+    """
+    Gets typical arguments for a gemm-based profiling program
+    User can add optional args on top if needed
+    """
     parser = argparse.ArgumentParser(description="Profiling Program For Gemm-Based Kernel")
     parser.add_argument("m", type=int)
     parser.add_argument("n", type=int)
@@ -92,6 +100,3 @@ def get_kaiming(shape, gain=2, dtype=torch.bfloat16, device="cuda", ncu=False):
     gen_device = "cpu" if ncu else device
     multiplier = gain / math.sqrt(shape[1])
     return torch.randn(shape, dtype=dtype, device=gen_device).mul(multiplier).to(device)
-
-if __name__ == '__main__':
-    print(ExperimentOutput.header())

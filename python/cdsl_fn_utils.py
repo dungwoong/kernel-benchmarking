@@ -7,6 +7,15 @@ from typing import Optional
 
 import cutlass.cute as cute
 
+"""
+Utility functions for compiling cuteDSL kernels.
+
+Currently, two options are:
+- pass in sample tensors using convert_from_dlpack with sample inputs
+- create faketensors
+compile_cutedsl uses the first strategy
+"""
+
 STREAM = cuda.CUstream(torch.cuda.current_stream().cuda_stream)
 
 convert_from_dlpack = lambda tensor: (
