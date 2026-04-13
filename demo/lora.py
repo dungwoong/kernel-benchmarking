@@ -45,7 +45,7 @@ if __name__ == "__main__":
     b64 = get_normal_bernoulli((n, k), dtype=torch.float64)
     c = torch.empty((m, n), dtype=torch.bfloat16).to('cuda')
     lA64 = get_normal_bernoulli((lora_dim, k), dtype=torch.float64)
-    lB64 = get_normal_bernoulli((n, lora_dim), dtype=torch.bfloat16)
+    lB64 = get_normal_bernoulli((n, lora_dim), dtype=torch.float64)
 
     ref = torch_kernel(a64, b64, lA64, lB64)
     a, b, lA, lB = (t.to(torch.bfloat16) for t in (a64, b64, lA64, lB64))
