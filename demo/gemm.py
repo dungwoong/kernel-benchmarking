@@ -1,3 +1,4 @@
+import time
 import torch
 import math
 import cutlass
@@ -32,22 +33,12 @@ if __name__ == "__main__":
     cdsl_output = ExperimentOutput('cdsl', args.m, args.n, args.k)
     
     m, n, k = args.m, args.n, args.k
-
-    # Compile CuteDSL kernel
-    # TODO add helper functions for this later
-    # dtype = cutlass.BFloat16
-    # div = math.gcd(128//dtype.width, k)
-    # divn = math.gcd(128//dtype.width, n)
-    # fA = make_fake_tensor(dtype, (m, k), div)
-    # fB = make_fake_tensor(dtype, (n, k), div)
-    # fC = make_fake_tensor(dtype, (m, n), divn)
-    # current_stream = cuda.CUstream(torch.cuda.current_stream().cuda_stream)
-    # compiled_gemm = cute.compile(gemm, fA, fB, fC, current_stream, options='--enable-tvm-ffi')
     
     a = get_normal_bernoulli((m, k))
     b = get_normal_bernoulli((n, k))
+    c = torch.empty((m, n), dtype=torch.bfloat16).to('cuda')
     tensors = (a, b)
-    compiled_gemm = cute.compile(tensors, gemm)
+    compiled_gemm = compile_cutedsl((a, b, c), gemm)
     ref = a.to(torch.float64) @ b.to(torch.float64).t()
 
     def cdsl_kernel(a_: torch.Tensor, b_: torch.Tensor):
@@ -55,8 +46,10 @@ if __name__ == "__main__":
         compiled_gemm(a_, b_, o, STREAM)
         return o
     
-    torch_output.run(torch_kernel, tensors, ref)
     cdsl_output.run(cdsl_kernel, tensors, ref)
+    time.sleep(2)
+    torch_output.run(torch_kernel, tensors, ref)
     print(ExperimentOutput.header())
     print(torch_output.values())
     print(cdsl_output.values())
+    print(torch_output.time_ms / cdsl_output.time_ms)

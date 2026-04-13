@@ -1,4 +1,5 @@
 import torch
+import cutlass
 from cutlass import cute
 from cutlass.cute.runtime import from_dlpack
 import cuda.bindings.driver as cuda
