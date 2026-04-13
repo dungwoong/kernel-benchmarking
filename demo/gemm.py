@@ -6,7 +6,7 @@ import cuda.bindings.driver as cuda
 
 from profile_utils import ExperimentOutput, get_normal_bernoulli, get_args
 from cutedsl_kernels import Gemm1SM90
-from cdsl_fn_utils import make_fake_tensor
+from cdsl_fn_utils import make_fake_tensor, compile_cutedsl, STREAM
 
 """
 Profiles torch gemm(cuBLAS) + cutedsl kernel
@@ -35,25 +35,25 @@ if __name__ == "__main__":
 
     # Compile CuteDSL kernel
     # TODO add helper functions for this later
-    dtype = cutlass.BFloat16
-    div = math.gcd(128//dtype.width, k)
-    divn = math.gcd(128//dtype.width, n)
-    fA = make_fake_tensor(dtype, (m, k), div)
-    fB = make_fake_tensor(dtype, (n, k), div)
-    fC = make_fake_tensor(dtype, (m, n), divn)
-    current_stream = cuda.CUstream(torch.cuda.current_stream().cuda_stream)
-    compiled_gemm = cute.compile(gemm, fA, fB, fC, current_stream, options='--enable-tvm-ffi')
-    
-    def cdsl_kernel(a_: torch.Tensor, b_: torch.Tensor):
-        o = torch.empty(a_.shape[0], b_.shape[0], dtype=torch.bfloat16, device='cuda')
-        compiled_gemm(a_, b_, o, current_stream)
-        return o
+    # dtype = cutlass.BFloat16
+    # div = math.gcd(128//dtype.width, k)
+    # divn = math.gcd(128//dtype.width, n)
+    # fA = make_fake_tensor(dtype, (m, k), div)
+    # fB = make_fake_tensor(dtype, (n, k), div)
+    # fC = make_fake_tensor(dtype, (m, n), divn)
+    # current_stream = cuda.CUstream(torch.cuda.current_stream().cuda_stream)
+    # compiled_gemm = cute.compile(gemm, fA, fB, fC, current_stream, options='--enable-tvm-ffi')
     
     a = get_normal_bernoulli((m, k))
     b = get_normal_bernoulli((n, k))
-    print(a.dtype)
     tensors = (a, b)
+    compiled_gemm = cute.compile(tensors, gemm)
     ref = a.to(torch.float64) @ b.to(torch.float64).t()
+
+    def cdsl_kernel(a_: torch.Tensor, b_: torch.Tensor):
+        o = torch.empty(a_.shape[0], b_.shape[0], dtype=torch.bfloat16, device='cuda')
+        compiled_gemm(a_, b_, o, STREAM)
+        return o
     
     torch_output.run(torch_kernel, tensors, ref)
     cdsl_output.run(cdsl_kernel, tensors, ref)
