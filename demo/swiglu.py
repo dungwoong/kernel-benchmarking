@@ -72,9 +72,13 @@ if __name__ == "__main__":
     # time.sleep(2)
     # torch_unfused_output.run(torch_unfused_compiled, tensors, ref)
     
-    print(ExperimentOutput.header())
-    print(torch_output.values())
-    print(cdsl_output.values())
-    # print(torch_unfused_output.values())
-    print(torch_output.time_ms / cdsl_output.time_ms)
-    print(torch_unfused_output.time_ms / cdsl_output.time_ms)
+    if args.to_csv:
+        print(ExperimentOutput.list_to_csv(torch_output.values()))
+        print(ExperimentOutput.list_to_csv(cdsl_output.values()))
+    else:
+        print(ExperimentOutput.header())
+        print(torch_output.values())
+        print(cdsl_output.values())
+        # print(torch_unfused_output.values())
+        print(torch_output.time_ms / cdsl_output.time_ms)
+        # print(torch_unfused_output.time_ms / cdsl_output.time_ms)

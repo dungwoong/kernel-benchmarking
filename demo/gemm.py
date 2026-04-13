@@ -49,7 +49,12 @@ if __name__ == "__main__":
     cdsl_output.run(cdsl_kernel, tensors, ref)
     time.sleep(2)
     torch_output.run(torch_kernel, tensors, ref)
-    print(ExperimentOutput.header())
-    print(torch_output.values())
-    print(cdsl_output.values())
-    print(torch_output.time_ms / cdsl_output.time_ms)
+    
+    if args.to_csv:
+        print(ExperimentOutput.list_to_csv(torch_output.values()))
+        print(ExperimentOutput.list_to_csv(cdsl_output.values()))
+    else:
+        print(ExperimentOutput.header())
+        print(torch_output.values())
+        print(cdsl_output.values())
+        print(torch_output.time_ms / cdsl_output.time_ms)

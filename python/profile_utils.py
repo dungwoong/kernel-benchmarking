@@ -70,6 +70,9 @@ def get_args(parse=True):
     parser.add_argument("m", type=int)
     parser.add_argument("n", type=int)
     parser.add_argument("k", type=int)
+
+    # you can use this as a print flag
+    parser.add_argument("--to_csv", type=bool, default=True)
     if parse:
         args = parser.parse_args()
         return args
