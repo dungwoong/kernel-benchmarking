@@ -49,9 +49,9 @@ class ExperimentOutput:
         self.rmse = get_rmse(ref_output, o_casted)
         self.max_abs, self.max_rel = get_max_errors(o_casted, ref_output)
         timings = do_bench(lambda: kernel(*tensors), return_mode='all')
-        self.ms_median = np.median(timings)
-        self.ms_mean = np.mean(timings)
-        self.ms_std = np.std(timings)
+        self.ms_median = np.median(timings).item()
+        self.ms_mean = np.mean(timings).item()
+        self.ms_std = np.std(timings).item()
     
     def run_ncu(self, kernel, tensors):
         kernel(*tensors)
