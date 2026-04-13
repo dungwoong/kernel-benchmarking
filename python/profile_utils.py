@@ -60,7 +60,7 @@ class ExperimentOutput:
 
     @staticmethod
     def list_to_csv(lst):
-        return ','.join(lst)
+        return ','.join(str(x) for x in lst)
 
 def get_rmse(ref: torch.Tensor, o: torch.Tensor):
     assert o.dtype == ref.dtype
@@ -87,7 +87,7 @@ def get_args(parse=True):
     parser.add_argument("k", type=int)
 
     # you can use this as a print flag
-    parser.add_argument("--to_csv", type=bool, default=True)
+    parser.add_argument("--to_csv", action='store_true')
     if parse:
         args = parser.parse_args()
         return args
