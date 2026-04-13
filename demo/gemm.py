@@ -6,7 +6,7 @@ import cuda.bindings.driver as cuda
 
 from profile_utils import ExperimentOutput, get_normal_bernoulli, get_args
 from cutedsl_kernels import Gemm1SM90
-from cdsl_function_utils import make_fake_tensor
+from cdsl_fn_utils import make_fake_tensor
 
 """
 Profiles torch gemm(cuBLAS) + cutedsl kernel
@@ -44,13 +44,14 @@ if __name__ == "__main__":
     current_stream = cuda.CUstream(torch.cuda.current_stream().cuda_stream)
     compiled_gemm = cute.compile(gemm, fA, fB, fC, current_stream, options='--enable-tvm-ffi')
     
-    def cdsl_kernel(a: torch.Tensor, b: torch.Tensor):
-        o = torch.empty(a.shape[0], b.shape[0], dtype=torch.bfloat16, device='cuda')
-        compiled_gemm(a, b, o, current_stream)
+    def cdsl_kernel(a_: torch.Tensor, b_: torch.Tensor):
+        o = torch.empty(a_.shape[0], b_.shape[0], dtype=torch.bfloat16, device='cuda')
+        compiled_gemm(a_, b_, o, current_stream)
         return o
     
     a = get_normal_bernoulli((m, k))
     b = get_normal_bernoulli((n, k))
+    print(a.dtype)
     tensors = (a, b)
     ref = a.to(torch.float64) @ b.to(torch.float64).t()
     

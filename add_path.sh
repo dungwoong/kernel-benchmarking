@@ -1,1 +1,1 @@
-export PYTHONPATH="$PYTHONPATH:$PWD/python:$PWD/third_party"
+export PYTHONPATH="$PYTHONPATH:$PWD/python:$PWD/third_party/fused_kernels_cutedsl_lib/python"

@@ -79,7 +79,7 @@ def get_normal_bernoulli(shape, p=0.001, dtype=torch.bfloat16, device="cuda", nc
     gen_device = "cpu" if ncu else device
     base_noise = torch.randn(shape, dtype=dtype, device=gen_device)
     large_noise = torch.randn(shape, dtype=dtype, device=gen_device) * 10
-    mask = torch.bernoulli(torch.full(shape, p, device=gen_device))
+    mask = torch.bernoulli(torch.full(shape, p, dtype=torch.bfloat16, device=gen_device))
 
     return (base_noise + (large_noise * mask)).to(device)
 
