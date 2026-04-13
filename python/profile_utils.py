@@ -19,6 +19,7 @@ class ExperimentOutput:
     max_abs: float=None
     max_rel: float=None
     rmse: float=None
+    metadata: str=None
 
     @classmethod
     def header(cls) -> tuple:
@@ -64,15 +65,15 @@ def get_max_errors(ref: torch.Tensor, o: torch.Tensor):
     max_rel = (diff / (ref.abs().clamp(min=1.0))).max().item()
     return max_abs, max_rel
 
-def get_args():
+def get_args(parse=True):
     parser = argparse.ArgumentParser(description="Profiling Program For Gemm-Based Kernel")
     parser.add_argument("m", type=int)
     parser.add_argument("n", type=int)
     parser.add_argument("k", type=int)
-    parser.add_argument("--label", type=str)
-    parser.add_argument("--output_keys_only", type=bool, default=False)
-    args = parser.parse_args()
-    return args
+    if parse:
+        args = parser.parse_args()
+        return args
+    return parser
 
 def get_normal_bernoulli(shape, p=0.001, dtype=torch.bfloat16, device="cuda", ncu=False) -> torch.Tensor:
     """References FlashAttention3"""
