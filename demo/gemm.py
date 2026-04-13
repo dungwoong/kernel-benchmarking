@@ -57,4 +57,4 @@ if __name__ == "__main__":
         print(ExperimentOutput.header())
         print(torch_output.values())
         print(cdsl_output.values())
-        print(torch_output.time_ms / cdsl_output.time_ms)
+        print(torch_output.q50_ms / cdsl_output.q50_ms)

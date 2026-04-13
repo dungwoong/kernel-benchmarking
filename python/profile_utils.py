@@ -19,7 +19,11 @@ class ExperimentOutput:
     m: int
     n: int
     k: int
-    time_ms: float=None
+    q0_ms: float=None
+    q25_ms: float=None
+    q50_ms: float=None
+    q75_ms: float=None
+    q100_ms: float=None
     max_abs: float=None
     max_rel: float=None
     rmse: float=None
@@ -40,13 +44,16 @@ class ExperimentOutput:
         Make sure tensors are detached if necessary.
         Max abs/rel aren't that useful since the scale of the tensors influences it heavily
         """
-        assert all(x is None for x in (self.time_ms, self.rmse, self.max_abs, self.max_rel))
         o = kernel(*tensors)
         o_casted = o.to(ref_output.dtype)
 
         self.rmse = get_rmse(ref_output, o_casted)
         self.max_abs, self.max_rel = get_max_errors(o_casted, ref_output)
-        self.time_ms = do_bench(lambda: kernel(*tensors))
+        (
+            self.q0_ms, self.q25_ms, 
+            self.q50_ms, self.q75_ms, 
+            self.q100_ms
+        ) = do_bench(lambda: kernel(*tensors), quantiles=[0, 0.25, 0.5, 0.75, 1], return_mode='median')
     
     def run_ncu(self, kernel, tensors):
         kernel(*tensors)
