@@ -41,12 +41,13 @@ if __name__ == "__main__":
     
     m, n, k = args.m, args.n, args.k
     
-    a = get_normal_bernoulli((m, k))
-    b = get_normal_bernoulli((n, k))
+    a64 = get_normal_bernoulli((m, k), dtype=torch.float64)
+    b64 = get_normal_bernoulli((n, k), dtype=torch.float64)
+    a, b = (t.to(torch.bfloat16) for t in (a64, b64))
     c = torch.empty((m, n), dtype=torch.bfloat16).to('cuda')
     tensors = (a, b)
     compiled_gemm = compile_cutedsl((a, b, c), gemm)
-    ref = torch_kernel(a.to(torch.float64), b.to(torch.float64))
+    ref = torch_kernel(a64, b64)
     
     compiled_torch = torch.compile(torch_kernel)
 
