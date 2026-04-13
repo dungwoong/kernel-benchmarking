@@ -2,6 +2,7 @@ import torch
 import argparse
 from triton.testing import do_bench
 import math
+import numpy as np
 from dataclasses import dataclass, fields
 
 # ---------------------------------------
@@ -19,11 +20,9 @@ class ExperimentOutput:
     m: int
     n: int
     k: int
-    q0_ms: float=None
-    q25_ms: float=None
-    q50_ms: float=None
-    q75_ms: float=None
-    q100_ms: float=None
+    ms_median: float=None
+    ms_mean: float=None
+    ms_std: float=None
     max_abs: float=None
     max_rel: float=None
     rmse: float=None
@@ -49,11 +48,10 @@ class ExperimentOutput:
 
         self.rmse = get_rmse(ref_output, o_casted)
         self.max_abs, self.max_rel = get_max_errors(o_casted, ref_output)
-        (
-            self.q0_ms, self.q25_ms, 
-            self.q50_ms, self.q75_ms, 
-            self.q100_ms
-        ) = do_bench(lambda: kernel(*tensors), quantiles=[0, 0.25, 0.5, 0.75, 1], return_mode='median')
+        timings = do_bench(lambda: kernel(*tensors), return_mode='all')
+        self.ms_median = np.median(timings)
+        self.ms_mean = np.mean(timings)
+        self.ms_std = np.std(timings)
     
     def run_ncu(self, kernel, tensors):
         kernel(*tensors)
