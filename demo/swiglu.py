@@ -29,10 +29,16 @@ def torch_kernel(a: torch.Tensor, bb1: torch.Tensor):
     o1, o2 = o.chunk(2, dim=1)
     return torch.nn.functional.silu(o1) * o2
 
+def torch_unfused(a: torch.Tensor, b: torch.Tensor, b1: torch.Tensor):
+    in1 = a @ b.t()
+    in2 = a @ b1.t()
+    return torch.nn.functional.silu(in1) * in2
+
 
 if __name__ == "__main__":
     args = get_args()
     torch_output = ExperimentOutput('swiglu_torch', args.m, args.n, args.k)
+    # torch_unfused_output = ExperimentOutput('swiglu_torch_unfused', args.m, args.n, args.k)
     cdsl_output = ExperimentOutput('swiglu_cdsl', args.m, args.n, args.k)
     
     m, n, k = args.m, args.n, args.k
@@ -50,7 +56,7 @@ if __name__ == "__main__":
     tensors = (a, b, b1)
     torch_tensors = (a, bb1)
     compiled_gemm = compile_cutedsl((a, b, b1, c), swiglu)
-    ref = torch_kernel(a64, bb164)
+    ref = torch_unfused(a64, b64, b164)
 
     def cdsl_kernel(a_: torch.Tensor, b_: torch.Tensor, b1_: torch.Tensor):
         o = torch.empty(a_.shape[0], b_.shape[0], dtype=torch.bfloat16, device='cuda')
@@ -58,11 +64,17 @@ if __name__ == "__main__":
         return o
     
     torch_compiled = torch.compile(torch_kernel)
+    torch_unfused_compiled = torch.compile(torch_unfused)
     
     cdsl_output.run(cdsl_kernel, tensors, ref)
     time.sleep(2)
     torch_output.run(torch_compiled, torch_tensors, ref)
+    # time.sleep(2)
+    # torch_unfused_output.run(torch_unfused_compiled, tensors, ref)
+    
     print(ExperimentOutput.header())
     print(torch_output.values())
     print(cdsl_output.values())
+    # print(torch_unfused_output.values())
     print(torch_output.time_ms / cdsl_output.time_ms)
+    print(torch_unfused_output.time_ms / cdsl_output.time_ms)
