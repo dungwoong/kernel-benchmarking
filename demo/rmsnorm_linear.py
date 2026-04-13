@@ -36,8 +36,8 @@ def torch_kernel(a: torch.Tensor, b: torch.Tensor):
 
 if __name__ == "__main__":
     args = get_args()
-    torch_output = ExperimentOutput('torch', args.m, args.n, args.k)
-    cdsl_output = ExperimentOutput('cdsl', args.m, args.n, args.k)
+    torch_output = ExperimentOutput('rmsnorm_lin_torch', args.m, args.n, args.k)
+    cdsl_output = ExperimentOutput('rmsnorm_lin_cdsl', args.m, args.n, args.k)
     
     m, n, k = args.m, args.n, args.k
     

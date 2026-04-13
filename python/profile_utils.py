@@ -1,7 +1,7 @@
 import torch
 import argparse
 from triton.testing import do_bench
-import time
+import math
 from dataclasses import dataclass, fields
 
 # ---------------------------------------
@@ -82,6 +82,12 @@ def get_normal_bernoulli(shape, p=0.001, dtype=torch.bfloat16, device="cuda", nc
     mask = torch.bernoulli(torch.full(shape, p, dtype=torch.bfloat16, device=gen_device))
 
     return (base_noise + (large_noise * mask)).to(device)
+
+def get_kaiming(shape, gain=2, dtype=torch.bfloat16, device="cuda", ncu=False):
+    # weights, k dim(shape[1]) is fan in
+    gen_device = "cpu" if ncu else device
+    multiplier = gain / math.sqrt(shape[1])
+    return torch.randn(shape, dtype=dtype, device=gen_device).mul(multiplier).to(device)
 
 if __name__ == '__main__':
     print(ExperimentOutput.header())
