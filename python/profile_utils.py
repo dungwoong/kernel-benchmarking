@@ -1,5 +1,6 @@
 import torch
 import argparse
+import statistics
 import cuda.bindings.driver as cuda
 from triton.testing import do_bench
 import time
@@ -27,15 +28,18 @@ def get_args():
     return args
 
 
-def run_experiment(args, torch_tensors, torch_ref, other_tensors, other_kernel):
+def run_experiment(args, torch_tensors, torch_ref, other_tensors, other_kernel, bytes_accessed=None):
     output = {
         "label": args.label,
         "atol": args.atol,
         "rtol": args.rtol,
-        "time_ms": None, 
+        "ms_median": None,
+        "ms_mean": None,
+        "ms_std": None,
         "allclose": None,
         "max_abs": None,
         "max_rel": None,
+        "gb_per_s": None,
     }
 
     def print_keys():
@@ -59,7 +63,12 @@ def run_experiment(args, torch_tensors, torch_ref, other_tensors, other_kernel):
 
     # timing
     time.sleep(1) # Cool GPU for a bit in case we're running a batched job
-    output['time_ms'] = do_bench(lambda: other_kernel(*other_tensors))
+    times = do_bench(lambda: other_kernel(*other_tensors), return_mode="all")
+    output['ms_median'] = statistics.median(times)
+    output['ms_mean'] = sum(times) / len(times)
+    output['ms_std'] = (sum((t - output['ms_mean']) ** 2 for t in times) / len(times)) ** 0.5
+    if bytes_accessed is not None:
+        output['gb_per_s'] = (bytes_accessed / 1e9) / (output['ms_median'] / 1e3)
     # except Exception as e:
     #     print(e)
     # finally:
