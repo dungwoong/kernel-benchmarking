@@ -10,7 +10,9 @@ from cutedsl_kernels import RMSNormLinear1SM90
 from cdsl_fn_utils import make_fake_tensor, compile_cutedsl, STREAM
 
 """
-Profiles torch gemm(cuBLAS) + cutedsl kernel
+Profiles RMSNorm + Linear kernels
+- you get around 1.15x speedup on mnk2048
+- however, you do get an increase in RMSE, so we need to try lowering that
 """
 torch.manual_seed(18)
 
