@@ -23,11 +23,13 @@ if __name__ == '__main__':
     q = torch.randn(B, T, H, K, device=device, dtype=dtype)
     k = torch.randn(B, T, H, K, device=device, dtype=dtype)
     v = torch.randn(B, T, H, V, device=device, dtype=dtype)
+    gamma = torch.rand(H, device=device, dtype=dtype) * -0.01
     scale = K ** -0.5
-    o, _ = fla_linear_attention(q, k, v, scale=scale)
-    o2 = simple_gla(q, k, v, scale=scale)
+    o, _ = fla_linear_attention(q, k, v, g_gamma=gamma, scale=scale)
+    o2 = simple_gla(q, k, v, gamma=gamma, scale=scale)
+    mean_output = torch.mean(o.abs()).item()
     max_output = torch.max(o2.abs()).item()
     max_err = torch.max((o - o2).abs()).item()
     rmse = get_rmse(o, o2)
-    print(f'{max_output=}, {max_err=}, {rmse=}')
+    print(f'{mean_output=} {max_output=}, {max_err=}, {rmse=}')
     assert torch.allclose(o, o2, atol=1e-1, rtol=1e-2)
