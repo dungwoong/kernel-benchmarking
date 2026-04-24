@@ -6,3 +6,6 @@ From: pytorch/pytorch:2.8.0-cuda12.9-cudnn9-devel
 
 %post
     pip install -r /opt/requirements.txt
+    apt-get update && apt-get install -y --no-install-recommends \
+        nsight-compute \
+        && rm -rf /var/lib/apt/lists/*
