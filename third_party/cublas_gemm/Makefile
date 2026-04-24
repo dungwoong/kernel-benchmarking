@@ -1,5 +1,5 @@
 NVCC    = nvcc
-ARCH    = sm_90        # H100 is sm_90
+ARCH    = sm_90        
 CFLAGS  = -O3 -arch=$(ARCH) -std=c++17
 LIBS    = -lcublas
 
