@@ -11,9 +11,11 @@ mkdir -p logs
 
 SCRIPT_DIR="$SLURM_SUBMIT_DIR"
 
+# e.g. sbatch --export=ALL,CONTAINER="../CuteDSL129.sif" job_benchmark.sh
+echo using container $CONTAINER
 module load apptainer
 
-apptainer exec --nv ~/apptainer.sandbox bash -c "
+apptainer exec --nv $CONTAINER bash -c "
     cd ${SCRIPT_DIR} &&
     make &&
     ./cublas_gemm 65536 4096 8192
