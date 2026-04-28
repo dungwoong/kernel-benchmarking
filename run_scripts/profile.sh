@@ -1,3 +1,5 @@
+# Profiles all workloads on some preliminary shapes
+
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. & pwd)"
 
 python3 $DIR/demo/gen_header.py

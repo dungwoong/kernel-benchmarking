@@ -61,21 +61,25 @@ static void benchmark_one(cublasHandle_t handle,
     // Block CPU until GPU finishes all warmup work before starting the clock.
     CUDA_CHECK(cudaDeviceSynchronize());
 
-    cudaEvent_t start, stop;
-    CUDA_CHECK(cudaEventCreate(&start));
-    CUDA_CHECK(cudaEventCreate(&stop));
+    cudaEvent_t start[bench], stop[bench];
+    for (int i = 0; i < bench; i++) {
+        CUDA_CHECK(cudaEventCreate(&start[i]));
+        CUDA_CHECK(cudaEventCreate(&stop[i]));
+    }
 
     std::vector<float> ms(bench);
     for (int i = 0; i < bench; i++) {
-        CUDA_CHECK(cudaEventRecord(start));
+        CUDA_CHECK(cudaEventRecord(start[i]));
         run_cublas(handle, M, N, K, alpha, beta, dA, dB, dC);
-        CUDA_CHECK(cudaEventRecord(stop));
-        CUDA_CHECK(cudaEventSynchronize(stop));
-        CUDA_CHECK(cudaEventElapsedTime(&ms[i], start, stop));
+        CUDA_CHECK(cudaEventRecord(stop[i]));
     }
-
-    CUDA_CHECK(cudaEventDestroy(start));
-    CUDA_CHECK(cudaEventDestroy(stop));
+    // CUDA_CHECK(cudaEventSynchronize(stop[bench-1]));
+    CUDA_CHECK(cudaDeviceSynchronize());
+    for (int i = 0; i < bench; i++) {
+        CUDA_CHECK(cudaEventElapsedTime(&ms[i], start[i], stop[i]));
+        CUDA_CHECK(cudaEventDestroy(start[i]));
+        CUDA_CHECK(cudaEventDestroy(stop[i]));
+    }
 
     std::sort(ms.begin(), ms.end());
     float median = ms[bench / 2];

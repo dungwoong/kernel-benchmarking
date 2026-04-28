@@ -20,6 +20,7 @@ class ExperimentOutput:
     m: int
     n: int
     k: int
+    use_do_bench: bool=True
     ms_median: float=None
     ms_mean: float=None
     ms_std: float=None
@@ -48,10 +49,33 @@ class ExperimentOutput:
 
         self.rmse = get_rmse(ref_output, o_casted)
         self.max_abs, self.max_rel = get_max_errors(o_casted, ref_output)
-        timings = do_bench(lambda: kernel(*tensors), return_mode='all')
+        if self.use_do_bench:
+            timings = do_bench(lambda: kernel(*tensors), return_mode='all')
+        else:
+            timings = self.cuda_timings(lambda: kernel(*tensors))
         self.ms_median = np.median(timings).item()
         self.ms_mean = np.mean(timings).item()
         self.ms_std = np.std(timings).item()
+    
+    def cuda_timings(self, func, warmup=10, bench=50):
+        with torch.no_grad():
+            for _ in range(warmup):
+                func()
+            
+            torch.cuda.synchronize()
+            
+            start_events = [torch.cuda.Event(enable_timing=True) for _ in range(bench)]
+            end_events = [torch.cuda.Event(enable_timing=True) for _ in range(bench)]
+            
+            for i in range(bench):
+                start_events[i].record()
+                func()
+                end_events[i].record()
+            torch.cuda.synchronize()
+            
+            timings = [s.elapsed_time(e) for s, e in zip(start_events, end_events)]
+            
+        return timings
     
     def run_ncu(self, kernel, tensors):
         kernel(*tensors)
