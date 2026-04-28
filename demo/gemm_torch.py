@@ -13,6 +13,7 @@ def torch_kernel(a: torch.Tensor, b: torch.Tensor):
     return a @ b.t()
 
 
+# TODO fix gen_header for TimingComparisonOutput
 if __name__ == "__main__":
     args = get_args()
     torch_output = TimingComparisonOutput('gemm_torch_cuda_timing', args.m, args.n, args.k)
