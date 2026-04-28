@@ -2,7 +2,7 @@ import time
 import torch
 import math
 
-from profile_utils import ExperimentOutput, get_normal_bernoulli, get_args
+from profile_utils import TimingComparisonOutput, get_normal_bernoulli, get_args
 
 """
 Profiles torch gemm(cuBLAS) + cutedsl kernel
@@ -15,7 +15,7 @@ def torch_kernel(a: torch.Tensor, b: torch.Tensor):
 
 if __name__ == "__main__":
     args = get_args()
-    torch_output = ExperimentOutput('gemm_torch_cuda_timing', args.m, args.n, args.k, use_do_bench=False)
+    torch_output = TimingComparisonOutput('gemm_torch_cuda_timing', args.m, args.n, args.k)
     
     m, n, k = args.m, args.n, args.k
     
@@ -26,7 +26,9 @@ if __name__ == "__main__":
     torch_output.run(torch_kernel, tensors, ref)
     
     if args.to_csv:
-        print(ExperimentOutput.list_to_csv(torch_output.values()))
+        print(TimingComparisonOutput.list_to_csv(torch_output.values()))
     else:
-        print(ExperimentOutput.header())
-        print(torch_output.values())
+        # print(TimingComparisonOutput.header())
+        # print(torch_output.values())
+        print(torch_output.ms_median, torch_output.ms_median_2)
+        print(torch_output.ms_mean, torch_output.ms_mean_2)
