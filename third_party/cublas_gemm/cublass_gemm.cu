@@ -88,8 +88,9 @@ static void benchmark_one(cublasHandle_t handle,
     double flops  = 2.0 * (double)M * N * K;
     double tflops = flops / (median * 1e-3) / 1e12;
 
-    printf("M=%-6d N=%-6d K=%-6d | median=%8.4f ms  mean=%8.4f ms  std=%7.4f ms  |  %7.2f TFLOPS\n",
-           M, N, K, median, mean, std_ms, tflops);
+    // printf("M=%-6d N=%-6d K=%-6d | median=%8.4f ms  mean=%8.4f ms  std=%7.4f ms  |  %7.2f TFLOPS\n",
+    //        M, N, K, median, mean, std_ms, tflops);
+    printf("%d,%d,%d,%.6f,%.6f,%.6f,%.2f\n", M, N, K, median, mean, std_ms, tflops);
     fflush(stdout);
 }
 
@@ -126,8 +127,8 @@ int main(int argc, char *argv[]) {
     CUDA_CHECK(cudaMemcpy(dA, hA.data(), hA.size() * sizeof(__nv_bfloat16), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(dB, hB.data(), hB.size() * sizeof(__nv_bfloat16), cudaMemcpyHostToDevice));
 
-    printf("cuBLAS bf16 GEMM  (k-major A and B, C = A * B^T)\n");
-    printf("warmup=%d  bench=%d\n\n", warmup, bench);
+    // printf("cuBLAS bf16 GEMM  (k-major A and B, C = A * B^T)\n");
+    // printf("warmup=%d  bench=%d\n\n", warmup, bench);
 
     benchmark_one(handle, M, N, K, warmup, bench, dA, dB, dC);
 

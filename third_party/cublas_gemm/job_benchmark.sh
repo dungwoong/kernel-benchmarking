@@ -18,5 +18,5 @@ module load apptainer
 apptainer exec --nv $CONTAINER bash -c "
     cd ${SCRIPT_DIR} &&
     make &&
-    ./cublas_gemm 65536 4096 8192
+    ./profile_shapes.sh > cublas_gemm_data.csv
 "
