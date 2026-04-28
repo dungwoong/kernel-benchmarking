@@ -73,7 +73,6 @@ static void benchmark_one(cublasHandle_t handle,
         run_cublas(handle, M, N, K, alpha, beta, dA, dB, dC);
         CUDA_CHECK(cudaEventRecord(stop[i]));
     }
-    // CUDA_CHECK(cudaEventSynchronize(stop[bench-1]));
     CUDA_CHECK(cudaDeviceSynchronize());
     for (int i = 0; i < bench; i++) {
         CUDA_CHECK(cudaEventElapsedTime(&ms[i], start[i], stop[i]));
