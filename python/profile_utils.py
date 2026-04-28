@@ -22,7 +22,6 @@ class ExperimentOutput:
     m: int
     n: int
     k: int
-    use_do_bench: bool=True
     ms_median: float=None
     ms_mean: float=None
     ms_std: float=None
@@ -51,10 +50,7 @@ class ExperimentOutput:
 
         self.rmse = get_rmse(ref_output, o_casted)
         self.max_abs, self.max_rel = get_max_errors(o_casted, ref_output)
-        if self.use_do_bench:
-            timings = do_bench(lambda: kernel(*tensors), return_mode='all')
-        else:
-            timings = cuda_timings_tritonbench(lambda: kernel(*tensors))
+        timings = do_bench(lambda: kernel(*tensors), return_mode='all')
         self.ms_median = np.median(timings).item()
         self.ms_mean = np.mean(timings).item()
         self.ms_std = np.std(timings).item()
@@ -145,27 +141,27 @@ def cuda_timings(func, warmup=10, bench=50):
         
     return timings
 
- def cuda_timings_tritonbench(self, func, warmup=10, bench=50):
-        di = runtime.driver.active.get_device_interface()
-        cache = runtime.driver.active.get_empty_cache_for_benchmark()
-        with torch.no_grad():
-            for _ in range(warmup):
-                func()
-            
-            start_events = [di.Event(enable_timing=True) for _ in range(bench)]
-            end_events = [di.Event(enable_timing=True) for _ in range(bench)]
-            
-            for i in range(bench):
-                runtime.driver.active.clear_cache(cache)
-                start_events[i].record()
-                func()
-                end_events[i].record()
+def cuda_timings_tritonbench(self, func, warmup=10, bench=50):
+    di = runtime.driver.active.get_device_interface()
+    cache = runtime.driver.active.get_empty_cache_for_benchmark()
+    with torch.no_grad():
+        for _ in range(warmup):
+            func()
+        
+        start_events = [di.Event(enable_timing=True) for _ in range(bench)]
+        end_events = [di.Event(enable_timing=True) for _ in range(bench)]
+        
+        for i in range(bench):
+            runtime.driver.active.clear_cache(cache)
+            start_events[i].record()
+            func()
+            end_events[i].record()
 
-            di.synchronize()
-            
-            timings = [s.elapsed_time(e) for s, e in zip(start_events, end_events)]
-            
-        return timings
+        di.synchronize()
+        
+        timings = [s.elapsed_time(e) for s, e in zip(start_events, end_events)]
+        
+    return timings
 
 def get_rmse(ref: torch.Tensor, o: torch.Tensor):
     assert o.dtype == ref.dtype

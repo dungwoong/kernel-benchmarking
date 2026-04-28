@@ -31,7 +31,7 @@ torch::Tensor gemm_cuda (
     int m, int n, int k, at::BFloat16 *dA, at::BFloat16 *dB
 ) {
     auto options = torch::TensorOptions().dtype(torch::kBFloat16).device(torch::kCUDA);
-    torch::Tensor C = torch::zeros({m, n}, options);
+    torch::Tensor C = torch::empty({m, n}, options);
     auto dC = C.data_ptr<at::BFloat16>();
 
     const float alpha = 1.0f;

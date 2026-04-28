@@ -32,36 +32,20 @@ def torch_kernel(a: torch.Tensor, b: torch.Tensor):
 
 if __name__ == "__main__":
     args = get_args()
-    torch_output = ExperimentOutput('gemm_torch', args.m, args.n, args.k)
-    cublas_output = ExperimentOutput('gemm_cublas', args.m, args.n, args.k)
-    cdsl_output = ExperimentOutput('gemm_cdsl', args.m, args.n, args.k)
     
     m, n, k = args.m, args.n, args.k
     
-    a = get_normal_bernoulli((m, k))
-    b = get_normal_bernoulli((n, k))
+    a = get_normal_bernoulli((m, k), ncu=True)
+    b = get_normal_bernoulli((n, k), ncu=True)
     c = torch.empty((m, n), dtype=torch.bfloat16).to('cuda')
     tensors = (a, b)
     compiled_gemm = compile_cutedsl((a, b, c), gemm, include_stream=False)
-    ref = a.to(torch.float64) @ b.to(torch.float64).t()
 
     def cdsl_kernel(a_: torch.Tensor, b_: torch.Tensor):
-        o = torch.empty(a_.shape[0], b_.shape[0], dtype=torch.bfloat16, device='cuda')
+        o = torch.empty(a_.shape[0], b_.shape[0], dtype=torch.bfloat16).to('cuda')
         compiled_gemm(a_, b_, o)
         return o
     
-    cdsl_output.run(cdsl_kernel, tensors, ref)
-    time.sleep(2)
-    torch_output.run(torch_kernel, tensors, ref)
-    time.sleep(2)
-    cublas_output.run(cublas_matmul, tensors, ref)
-    
-    if args.to_csv:
-        print(ExperimentOutput.list_to_csv(torch_output.values()))
-        print(ExperimentOutput.list_to_csv(cublas_output.values()))
-        print(ExperimentOutput.list_to_csv(cdsl_output.values()))
-    else:
-        print(ExperimentOutput.header())
-        print(torch_output.values())
-        print(cdsl_output.values())
-        print(torch_output.ms_median / cdsl_output.ms_median)
+    torch_kernel(*tensors)
+    cdsl_kernel(*tensors)
+    cublas_matmul(*tensors)
