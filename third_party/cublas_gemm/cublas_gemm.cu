@@ -61,21 +61,24 @@ static void benchmark_one(cublasHandle_t handle,
     // Block CPU until GPU finishes all warmup work before starting the clock.
     CUDA_CHECK(cudaDeviceSynchronize());
 
-    cudaEvent_t start, stop;
-    CUDA_CHECK(cudaEventCreate(&start));
-    CUDA_CHECK(cudaEventCreate(&stop));
+    cudaEvent_t start[bench], stop[bench];
+    for (int i = 0; i < bench; i++) {
+        CUDA_CHECK(cudaEventCreate(&start[i]));
+        CUDA_CHECK(cudaEventCreate(&stop[i]));
+    }
 
     std::vector<float> ms(bench);
     for (int i = 0; i < bench; i++) {
-        CUDA_CHECK(cudaEventRecord(start));
+        CUDA_CHECK(cudaEventRecord(start[i]));
         run_cublas(handle, M, N, K, alpha, beta, dA, dB, dC);
-        CUDA_CHECK(cudaEventRecord(stop));
-        CUDA_CHECK(cudaEventSynchronize(stop));
-        CUDA_CHECK(cudaEventElapsedTime(&ms[i], start, stop));
+        CUDA_CHECK(cudaEventRecord(stop[i]));
     }
-
-    CUDA_CHECK(cudaEventDestroy(start));
-    CUDA_CHECK(cudaEventDestroy(stop));
+    CUDA_CHECK(cudaDeviceSynchronize());
+    for (int i = 0; i < bench; i++) {
+        CUDA_CHECK(cudaEventElapsedTime(&ms[i], start[i], stop[i]));
+        CUDA_CHECK(cudaEventDestroy(start[i]));
+        CUDA_CHECK(cudaEventDestroy(stop[i]));
+    }
 
     std::sort(ms.begin(), ms.end());
     float median = ms[bench / 2];
@@ -88,8 +91,9 @@ static void benchmark_one(cublasHandle_t handle,
     double flops  = 2.0 * (double)M * N * K;
     double tflops = flops / (median * 1e-3) / 1e12;
 
-    printf("M=%-6d N=%-6d K=%-6d | median=%8.4f ms  mean=%8.4f ms  std=%7.4f ms  |  %7.2f TFLOPS\n",
-           M, N, K, median, mean, std_ms, tflops);
+    // printf("M=%-6d N=%-6d K=%-6d | median=%8.4f ms  mean=%8.4f ms  std=%7.4f ms  |  %7.2f TFLOPS\n",
+    //        M, N, K, median, mean, std_ms, tflops);
+    printf("%d,%d,%d,%.6f,%.6f,%.6f,%.2f\n", M, N, K, median, mean, std_ms, tflops);
     fflush(stdout);
 }
 
@@ -126,8 +130,8 @@ int main(int argc, char *argv[]) {
     CUDA_CHECK(cudaMemcpy(dA, hA.data(), hA.size() * sizeof(__nv_bfloat16), cudaMemcpyHostToDevice));
     CUDA_CHECK(cudaMemcpy(dB, hB.data(), hB.size() * sizeof(__nv_bfloat16), cudaMemcpyHostToDevice));
 
-    printf("cuBLAS bf16 GEMM  (k-major A and B, C = A * B^T)\n");
-    printf("warmup=%d  bench=%d\n\n", warmup, bench);
+    // printf("cuBLAS bf16 GEMM  (k-major A and B, C = A * B^T)\n");
+    // printf("warmup=%d  bench=%d\n\n", warmup, bench);
 
     benchmark_one(handle, M, N, K, warmup, bench, dA, dB, dC);
 

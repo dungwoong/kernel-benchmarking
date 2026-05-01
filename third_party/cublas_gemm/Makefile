@@ -3,8 +3,8 @@ ARCH    = sm_90
 CFLAGS  = -O3 -arch=$(ARCH) -std=c++17
 LIBS    = -lcublas
 
-TARGET  = cublas_gemm
-SRC     = cublass_gemm.cu
+TARGET  = cublas_gemm.out
+SRC     = cublas_gemm.cu
 
 $(TARGET): $(SRC)
 	$(NVCC) $(CFLAGS) -o $(TARGET) $(SRC) $(LIBS)

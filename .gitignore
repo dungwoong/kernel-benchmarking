@@ -1,4 +1,7 @@
 slurm_outputs/*
+*.csv
+*.out
+*.ncu-rep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -35,7 +35,10 @@ def make_fake_tensor(dtype, shape, divisibility=1, leading_dim=-1) -> Optional[c
         dtype, shape, stride=stride, assumed_align=divisibility * dtype.width // 8
     )
 
-def compile_cutedsl(tensors, kernel):
+def compile_cutedsl(tensors, kernel, include_stream=True):
     cute_tensors = [convert_from_dlpack(t) for t in tensors]
-    compiled = cute.compile(kernel, *cute_tensors, STREAM, options='--enable-tvm-ffi')
+    if include_stream:
+        compiled = cute.compile(kernel, *cute_tensors, STREAM, options='--enable-tvm-ffi')
+    else:
+        compiled = cute.compile(kernel, *cute_tensors, options='--enable-tvm-ffi')
     return compiled
