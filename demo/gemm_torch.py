@@ -6,6 +6,8 @@ from profile_utils import TimingComparisonOutput, get_normal_bernoulli, get_args
 
 """
 Profiles torch gemm using two profiling methods
+
+This script is likely unneeded anymore since we use do_bench for everything now.
 """
 torch.manual_seed(18)
 

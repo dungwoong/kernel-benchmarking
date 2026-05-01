@@ -11,7 +11,7 @@ from cutedsl_kernels import Gemm4SM90
 from cdsl_fn_utils import make_fake_tensor, compile_cutedsl, STREAM
 
 """
-Profiles torch gemm(cuBLAS) + cutedsl kernel
+Profiles torch, cuBLAS and CuteDSL gemm kernel, dumping stats
 """
 torch.manual_seed(18)
 

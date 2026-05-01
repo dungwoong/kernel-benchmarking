@@ -4,7 +4,7 @@ CFLAGS  = -O3 -arch=$(ARCH) -std=c++17
 LIBS    = -lcublas
 
 TARGET  = cublas_gemm.out
-SRC     = cublass_gemm.cu
+SRC     = cublas_gemm.cu
 
 $(TARGET): $(SRC)
 	$(NVCC) $(CFLAGS) -o $(TARGET) $(SRC) $(LIBS)
