@@ -1,4 +1,4 @@
-# Profile torch gemm
+# Output torch vs cublas timings for GEMM shapes
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. & pwd)"
 

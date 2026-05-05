@@ -7,6 +7,9 @@
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
 
+
+# Profiles cuBLAS using the C++ script for all available shapes
+
 mkdir -p logs
 
 SCRIPT_DIR="$SLURM_SUBMIT_DIR"

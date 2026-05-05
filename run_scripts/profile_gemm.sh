@@ -1,5 +1,5 @@
-# Profiles CuteDSL vs Torch gemm for available GEMM shapes
-# uses m128n256 as the tile size
+# Profiles CuteDSL vs Torch vs cuBLAS gemm for available GEMM shapes
+# uses m128n256 as the tile size for torch
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. & pwd)"
 

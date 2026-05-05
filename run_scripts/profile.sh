@@ -1,4 +1,4 @@
-# Profiles all workloads on some preliminary shapes
+# Profiles fused workloads on some preliminary shapes
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. & pwd)"
 

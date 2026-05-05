@@ -1,17 +1,11 @@
 import time
 import torch
-import math
-import cutlass
-from cutlass import cute
-import cuda.bindings.driver as cuda
 from cublas_mm import matmul as cublas_matmul
 
 from profile_utils import ExperimentOutput, get_normal_bernoulli, get_args
-from cutedsl_kernels import Gemm4SM90
-from cdsl_fn_utils import make_fake_tensor, compile_cutedsl, STREAM
 
 """
-Profiles torch gemm(cuBLAS) + torch kernel
+Profiles torch gemm(cuBLAS) + torch kernel, looking for discrepancies in timings
 """
 torch.manual_seed(18)
 

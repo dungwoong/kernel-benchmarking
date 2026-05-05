@@ -141,7 +141,7 @@ def cuda_timings(func, warmup=10, bench=50):
         
     return timings
 
-def cuda_timings_tritonbench(self, func, warmup=10, bench=50):
+def cuda_timings_tritonbench(func, warmup=10, bench=50):
     di = runtime.driver.active.get_device_interface()
     cache = runtime.driver.active.get_empty_cache_for_benchmark()
     with torch.no_grad():
