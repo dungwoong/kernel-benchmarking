@@ -8,6 +8,7 @@ import cuda.bindings.driver as cuda
 from profile_utils import ExperimentOutput, get_normal_bernoulli, get_args
 from cutedsl_kernels import RMSNormLinear1SM90
 from cdsl_fn_utils import make_fake_tensor, compile_cutedsl, STREAM
+from triton.testing import do_bench
 
 """
 Profiles RMSNorm + Linear kernels
@@ -32,6 +33,10 @@ gemm = RMSNormLinear1SM90(
 def torch_kernel(a: torch.Tensor, b: torch.Tensor):
     a_rms = torch.nn.functional.rms_norm(a, normalized_shape=(a.shape[1],), eps=EPS)
     return a_rms @ b.t()
+
+@torch.compile
+def rmsnorm_kernel(a: torch.Tensor):
+    return torch.nn.functional.rms_norm(a, normalized_shape=(a.shape[1],), eps=EPS)
 
 
 if __name__ == "__main__":
@@ -68,3 +73,8 @@ if __name__ == "__main__":
         print(torch_output.values())
         print(cdsl_output.values())
         print(torch_output.ms_median / cdsl_output.ms_median)
+
+        # Check max attainable speedup (rmsnorm + gemm / gemm)
+        rmsnorm_ms = do_bench(lambda: rmsnorm_kernel(a))
+        gemm_ms = do_bench(lambda: a @ b.t())
+        print(f'{rmsnorm_ms=}, {gemm_ms=}. Max speedup = {torch_output.ms_median / gemm_ms}')
