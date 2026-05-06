@@ -6,7 +6,7 @@ from cutlass import cute
 import cuda.bindings.driver as cuda
 
 from profile_utils import ExperimentOutput, get_normal_bernoulli, get_args
-from cutedsl_kernels import RMSNormLinear1SM90
+from cutedsl_kernels import RMSNormLinear2SM90
 from cdsl_fn_utils import make_fake_tensor, compile_cutedsl, STREAM
 from triton.testing import do_bench
 
@@ -19,24 +19,25 @@ torch.manual_seed(18)
 
 EPS = 1e-5
 
-gemm = RMSNormLinear1SM90(
-    tile_shape_mn=(128, 256), 
-    epi_tile_mn=(128, 32),
-    cluster_shape_mnk=(2, 1, 1), 
+gemm = RMSNormLinear2SM90(
+    tile_shape_mnk=(128, 256, 64),
+    epi_tile_mn=(128, 64),
+    cluster_shape_mnk=(1, 2, 1),
     atom_layout_mn=(2, 1),
-    ab_stage=3,
-    reuse_ab=False,
+    ab_stage=4,
+    epi_stage=2,
     is_persistent=True,
     gemm_n_prologue=0,
-    eps=EPS)
+    pingpong=False,
+)
 
-def torch_kernel(a: torch.Tensor, b: torch.Tensor):
-    a_rms = torch.nn.functional.rms_norm(a, normalized_shape=(a.shape[1],), eps=EPS)
+def torch_kernel(a: torch.Tensor, b: torch.Tensor, eps: float=EPS):
+    a_rms = torch.nn.functional.rms_norm(a, normalized_shape=(a.shape[1],), eps=eps)
     return a_rms @ b.t()
 
 @torch.compile
-def rmsnorm_kernel(a: torch.Tensor):
-    return torch.nn.functional.rms_norm(a, normalized_shape=(a.shape[1],), eps=EPS)
+def rmsnorm_kernel(a: torch.Tensor, eps: float=EPS):
+    return torch.nn.functional.rms_norm(a, normalized_shape=(a.shape[1],), eps=eps)
 
 
 if __name__ == "__main__":
@@ -51,14 +52,14 @@ if __name__ == "__main__":
     a, b = (t.to(torch.bfloat16) for t in (a64, b64))
     c = torch.empty((m, n), dtype=torch.bfloat16).to('cuda')
     tensors = (a, b)
-    compiled_gemm = compile_cutedsl((a, b, c), gemm)
+    compiled_gemm = compile_cutedsl((a, b, c, EPS), gemm, False)
     ref = torch_kernel(a64, b64)
     
     compiled_torch = torch.compile(torch_kernel)
 
-    def cdsl_kernel(a_: torch.Tensor, b_: torch.Tensor):
+    def cdsl_kernel(a_: torch.Tensor, b_: torch.Tensor, eps=EPS):
         o = torch.empty(a_.shape[0], b_.shape[0], dtype=torch.bfloat16, device='cuda')
-        compiled_gemm(a_, b_, o, STREAM)
+        compiled_gemm(a_, b_, o, eps)
         return o
     
     cdsl_output.run(cdsl_kernel, tensors, ref)
