@@ -7,5 +7,5 @@ python3 $DIR/demo/gen_header.py ExperimentOutput
 
 while read -r m n k; do
     python3 $DIR/demo/swiglu.py "$m" "$n" "$k" --to_csv
-    sleep 3
+    sleep 4
 done < $DIR/res/cdsl_rmsnorm_shapes_m128n256.txt
