@@ -7,8 +7,8 @@
 #SBATCH --output=slurm_outputs/KernelsProfile_%j.out
 #SBATCH --error=slurm_outputs/KernelsProfile_%j.err
 
-
-# e.g. sbatch --export=ALL,CONTAINER="../CuteDSL129.sif" slurm_profile.sh
+# e.g. sbatch --export=ALL,CONTAINER="../CuteDSL2.sif",SCRIPT="run_scripts/profile_rmsnorm_linear.sh" slurm_profile.sh
 echo using container $CONTAINER
+echo using script $SCRIPT
 module load apptainer
-apptainer exec --nv $CONTAINER bash -c "source ./add_path.sh && ./run_scripts/profile.sh > profile_data.csv"
+apptainer exec --nv $CONTAINER bash -c "source ./add_path.sh && $SCRIPT > profile_data.csv"
