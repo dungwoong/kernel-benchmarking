@@ -44,7 +44,8 @@ if __name__ == "__main__":
     args = get_args()
     torch_output = ExperimentOutput('rmsnorm_lin_torch', args.m, args.n, args.k)
     cdsl_output = ExperimentOutput('rmsnorm_lin_cdsl', args.m, args.n, args.k)
-    
+    max_output = ExperimentOutput('rmsnorm_lin_max', args.m, args.n, args.k)
+
     m, n, k = args.m, args.n, args.k
     
     a64 = get_normal_bernoulli((m, k), dtype=torch.float64)
@@ -54,6 +55,7 @@ if __name__ == "__main__":
     tensors = (a, b)
     compiled_gemm = compile_cutedsl((a, b, c, EPS), gemm, False)
     ref = torch_kernel(a64, b64)
+    ref_gemm = a64 @ b64.t()
     
     compiled_torch = torch.compile(torch_kernel)
 
@@ -62,13 +64,19 @@ if __name__ == "__main__":
         compiled_gemm(a_, b_, o, eps)
         return o
     
+    def gemm(a_, b_):
+        return a_ @ b_.t()
+    
     cdsl_output.run(cdsl_kernel, tensors, ref)
     time.sleep(2)
     torch_output.run(compiled_torch, tensors, ref)
+    time.sleep(2)
+    max_output.run(gemm, tensors, ref_gemm)
 
     if args.to_csv:
         print(ExperimentOutput.list_to_csv(torch_output.values()))
         print(ExperimentOutput.list_to_csv(cdsl_output.values()))
+        print(ExperimentOutput.list_to_csv(max_output.values()))
     else:
         print(ExperimentOutput.header())
         print(torch_output.values())
