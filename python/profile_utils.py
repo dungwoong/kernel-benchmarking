@@ -5,8 +5,9 @@ from triton import runtime
 from triton.testing import do_bench
 import math
 import numpy as np
-from typing import List
+from typing import List, Dict
 from dataclasses import dataclass, fields
+from copy import copy
 
 # ---------------------------------------
 # Output format for any experiments
@@ -221,40 +222,81 @@ class ProfilingTensor:
     def __init__(self, shape=None):
         self.tensor_64 = None
         self.tensor_16 = None
-        if shape is not None:
-            self.set_tensors()
+        self._shape = shape
+        self.is_cuda = False
     
-    def set_tensors(self):
+    def with_config(self, config: Dict[str, int]):
+        assert self._shape is not None
+        ret = ProfilingTensor(self._shape)
+        ret.populate(config)
+        return ret
+    
+    def populate(self, config: Dict[str, int]):
+        assert self._shape is not None or self.tensor_16 is not None
+        if self._shape is not None:
+            shape = [config[s] if isinstance(s, str) else s for s in self._shape]
+            self._set_tensors(shape)
+    
+    def _set_tensors(self, shape):
         self.tensor_64 = get_normal_bernoulli(shape, dtype=torch.float64, device="cpu")
         self.tensor_16 = self.tensor_64.to(torch.bfloat16)
     
-    def to(self, device):
+    def cuda(self):
         """
         Call this right before profiling
         """
-        self.tensor_64 = self.tensor_64.to(device)
-        self.tensor_16 = self.tensor_16.to(device)
+        self.tensor_64 = self.tensor_64.to('cuda')
+        self.tensor_16 = self.tensor_16.to('cuda')
+        self.is_cuda = True
+        return self
 
-    def concat(self, other, dim):
+    def concat(self, other, dim=-1):
+        assert not self.is_cuda, 'call is_cuda after doing ops'
         obj = ProfilingTensor()
         obj.tensor_64 = torch.concat((self.tensor_64, other.tensor_64), dim=dim)
-        obj = torch.concat((self.tensor_16, other.tensor_16), dim=dim)
+        obj.tensor_16 = torch.concat((self.tensor_16, other.tensor_16), dim=dim)
         return obj
 
-class ProfilingTensorSet:
-    def __init__(self, args):
+    def __repr__(self):
+        cuda_tag = '<cuda>' if self.is_cuda else ''
+        return f"ProfilingTensor{cuda_tag}{tuple(self.tensor_64.shape)}"
+
+class KernelArgs:
+    """
+    Example:
+    t1 = ProfilingTensor((64, 'k'))
+    t2 = ProfilingTensor(('k', 128))
+    args = KernelArgs(t1, t2, configs=[{'k': 5}, {'k': 6}])
+    a1 = args.with_config(1)
+    a1.cuda()
+    """
+    def __init__(self, *args, configs=None):
         self.args = args
+        self._configs = configs
+        self._populated = False
+
+    def with_config(self, idx: int):
+        """
+        Returned object will have populated torch tensors
+        """
+        new_args = [a.with_config(self._configs[idx]) if isinstance(a, ProfilingTensor) else a for a in self.args]
+        k = KernelArgs(*new_args, configs=self._configs)
+        k._populated = True
+        return k
+
+    def cuda(self):
+        assert self._populated
+        [a.cuda() if isinstance(a, ProfilingTensor) else None for a in self.args]
     
-    def to(self, device):
-        [a.to(device) if isinstance(a, ProfilingTensor) for a in self.args]
+    def _get(self, getter, mask=None):
+        # always return list so you can spread into args
+        return [
+            getter(a) if isinstance(a, ProfilingTensor) else a 
+            for idx, a in enumerate(self.args) 
+            if (mask is None or idx in mask)]
     
-    def _get(self, getter):
-        return [getter(a) if isinstance(a, ProfilingTensor) else a for a in self.args]
+    def tensors_64(self, mask=None):
+        return self._get(lambda x: x.tensor_64, mask=mask)
     
-    @property
-    def tensors_64(self):
-        return self._get(lambda x: x.tensor_64)
-    
-    @property
-    def tensors(self):
-        return self._get(lambda x: x.tensor_16)
+    def tensors(self, mask=None):
+        return self._get(lambda x: x.tensor_16, mask=mask)
