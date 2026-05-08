@@ -5,6 +5,7 @@ from triton import runtime
 from triton.testing import do_bench
 import math
 import numpy as np
+from typing import List
 from dataclasses import dataclass, fields
 
 # ---------------------------------------
@@ -208,3 +209,52 @@ def get_kaiming(shape, gain=2, dtype=torch.bfloat16, device="cuda", ncu=False):
     gen_device = "cpu" if ncu else device
     multiplier = gain / math.sqrt(shape[1])
     return torch.randn(shape, dtype=dtype, device=gen_device).mul(multiplier).to(device)
+
+
+class ProfilingTensor:
+    """
+    Allows quick creation of tensors without launching
+    CUDA kernels, and quick casting.
+
+    The two tensors in this object should always hold the same data.
+    """
+    def __init__(self, shape=None):
+        self.tensor_64 = None
+        self.tensor_16 = None
+        if shape is not None:
+            self.set_tensors()
+    
+    def set_tensors(self):
+        self.tensor_64 = get_normal_bernoulli(shape, dtype=torch.float64, device="cpu")
+        self.tensor_16 = self.tensor_64.to(torch.bfloat16)
+    
+    def to(self, device):
+        """
+        Call this right before profiling
+        """
+        self.tensor_64 = self.tensor_64.to(device)
+        self.tensor_16 = self.tensor_16.to(device)
+
+    def concat(self, other, dim):
+        obj = ProfilingTensor()
+        obj.tensor_64 = torch.concat((self.tensor_64, other.tensor_64), dim=dim)
+        obj = torch.concat((self.tensor_16, other.tensor_16), dim=dim)
+        return obj
+
+class ProfilingTensorSet:
+    def __init__(self, args):
+        self.args = args
+    
+    def to(self, device):
+        [a.to(device) if isinstance(a, ProfilingTensor) for a in self.args]
+    
+    def _get(self, getter):
+        return [getter(a) if isinstance(a, ProfilingTensor) else a for a in self.args]
+    
+    @property
+    def tensors_64(self):
+        return self._get(lambda x: x.tensor_64)
+    
+    @property
+    def tensors(self):
+        return self._get(lambda x: x.tensor_16)
