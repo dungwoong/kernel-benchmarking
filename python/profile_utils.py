@@ -7,7 +7,7 @@ import math
 import numpy as np
 from typing import List, Dict
 from dataclasses import dataclass, fields
-from copy import copy
+from cdsl_fn_utils import compile_cutedsl
 
 # ---------------------------------------
 # Output format for any experiments
@@ -21,9 +21,9 @@ class ExperimentOutput:
     metadata helps capture any additional params(e.g. lora dim)
     """
     label: str
-    m: int
-    n: int
-    k: int
+    m: int=None
+    n: int=None
+    k: int=None
     ms_median: float=None
     ms_mean: float=None
     ms_std: float=None
@@ -274,7 +274,7 @@ class KernelArgs:
     def __init__(self, *args, configs=None):
         self.args = args
         self._configs = configs
-        self._populated = False
+        self._populated_idx = None
 
     def with_config(self, idx: int):
         """
@@ -282,11 +282,11 @@ class KernelArgs:
         """
         new_args = [a.with_config(self._configs[idx]) if isinstance(a, ProfilingTensor) else a for a in self.args]
         k = KernelArgs(*new_args, configs=self._configs)
-        k._populated = True
+        k._populated_idx = idx
         return k
 
     def cuda(self):
-        assert self._populated
+        assert self._populated_idx is not None
         [a.cuda() if isinstance(a, ProfilingTensor) else None for a in self.args]
     
     def _get(self, getter, mask=None):
@@ -304,3 +304,30 @@ class KernelArgs:
     
     def __repr__(self):
         return f'KernelArgs({self.args})'
+
+
+class ProfilingJob:
+    # TODO test if this affects overhead at all
+    def __init__(self, label: str, kernels: dict, args: KernelArgs, arg_mask: dict, baseline: str, ref: str):
+        """
+        Ref should be a function that can be called on f64 inputs
+        Cutedsl kernel etc. should be compiled already and passed in as a callable
+        """
+        self.kernels = kernels
+        self.baseline = baseline
+        self.args = {k: args.tensors(arg_mask.get(k, None)) for k in kernels}
+        self.ref = self.kernels[ref](args.tensors_64(arg_mask.get(ref, None)))
+        self.outputs = {k: ExperimentOutput(f'{label}:{args._populated_idx}:{k}') for k in kernels}
+    
+    def run(self):
+        for k in self.kernels:
+            self.outputs[k].run(self.kernels[k], self.args[k], self.ref)
+            time.sleep(2)
+    
+    def run_ncu(self):
+        for k in self.kernels:
+            self.outputs[k].run_ncu(self.kernels[k], self.args[k])
+    
+    def output_results(self):
+        for k in self.outputs:
+            print(ExperimentOutput.list_to_csv(self.outputs[k].values()))
