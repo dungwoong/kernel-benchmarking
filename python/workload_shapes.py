@@ -17,7 +17,11 @@ GEMM_ARGS_NT = KernelArgs(
     ProfilingTensor(('n', 'k')),
     configs=GEMM_SHAPES)
 
-RMSNORM_LINEAR_ARGS_NT = GEMM_ARGS_NT
+RMSNORM_LINEAR_ARGS_NT = KernelArgs(
+    ProfilingTensor(('m', 'k')), 
+    ProfilingTensor(('n', 'k')),
+    1e-5,
+    configs=GEMM_SHAPES)
 
 SWIGLU_NT = KernelArgs(
     ProfilingTensor(('m', 'k')),

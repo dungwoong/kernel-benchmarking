@@ -238,6 +238,7 @@ class ProfilingTensor:
             self._set_tensors(shape)
     
     def _set_tensors(self, shape):
+        # Use CPU to avoid launching a cuda kernel
         self.tensor_64 = get_normal_bernoulli(shape, dtype=torch.float64, device="cpu")
         self.tensor_16 = self.tensor_64.to(torch.bfloat16)
     
@@ -300,3 +301,6 @@ class KernelArgs:
     
     def tensors(self, mask=None):
         return self._get(lambda x: x.tensor_16, mask=mask)
+    
+    def __repr__(self):
+        return f'KernelArgs({self.args})'
