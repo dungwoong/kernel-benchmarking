@@ -280,6 +280,7 @@ class KernelArgs:
         """
         Returned object will have populated torch tensors
         """
+        assert idx < len(self._configs), "Invalid config"
         new_args = [a.with_config(self._configs[idx]) if isinstance(a, ProfilingTensor) else a for a in self.args]
         k = KernelArgs(*new_args, configs=self._configs)
         k._populated_idx = idx
@@ -308,26 +309,47 @@ class KernelArgs:
 
 class ProfilingJob:
     # TODO test if this affects overhead at all
-    def __init__(self, label: str, kernels: dict, args: KernelArgs, arg_mask: dict, baseline: str, ref: str):
+    def __init__(self, label: str, kernels: dict, args: KernelArgs, baseline: str, ref: str, arg_mask: dict=None):
         """
         Ref should be a function that can be called on f64 inputs
         Cutedsl kernel etc. should be compiled already and passed in as a callable
         """
+        arg_mask = dict() if arg_mask is None else arg_mask
         self.kernels = kernels
         self.baseline = baseline
         self.args = {k: args.tensors(arg_mask.get(k, None)) for k in kernels}
         self.ref = self.kernels[ref](args.tensors_64(arg_mask.get(ref, None)))
         self.outputs = {k: ExperimentOutput(f'{label}:{args._populated_idx}:{k}') for k in kernels}
     
-    def run(self):
+    def _run(self):
         for k in self.kernels:
             self.outputs[k].run(self.kernels[k], self.args[k], self.ref)
             time.sleep(2)
     
-    def run_ncu(self):
+    def _run_ncu(self):
         for k in self.kernels:
             self.outputs[k].run_ncu(self.kernels[k], self.args[k])
+    
+    def run(self, ncu=False):
+        if ncu:
+            self._run()
+        else:
+            self._run_ncu()
     
     def output_results(self):
         for k in self.outputs:
             print(ExperimentOutput.list_to_csv(self.outputs[k].values()))
+
+def get_profiling_job_args(parse=True):
+    """
+    Assumes you already
+    """
+    parser = argparse.ArgumentParser(description="Profiling Program For Gemm-Based Kernel")
+    parser.add_argument("config", type=int, description="the config number")
+
+    # you can use this as a print flag
+    parser.add_argument("--ncu", action='store_true')
+    if parse:
+        args = parser.parse_args()
+        return args
+    return parser
