@@ -260,7 +260,26 @@ class ProfilingTensor:
 
     def __repr__(self):
         cuda_tag = '<cuda>' if self.is_cuda else ''
-        return f"ProfilingTensor{cuda_tag}{tuple(self.tensor_64.shape)}"
+        return f"{self.__class__.__name__}{cuda_tag}{tuple(self.tensor_16.shape)}"
+
+class EmptyTensor(ProfilingTensor):
+    def with_config(self, config: Dict[str, int]):
+        assert self._shape is not None
+        ret = ProfilingTensor(self._shape)
+        ret.populate(config)
+        return ret
+    
+    def _set_tensors(self, shape):
+        # Only populate the bf16 tensor
+        self.tensor_16 = torch.empty(shape, dtype=torch.bfloat16, device="cpu")
+    
+    def cuda(self):
+        self.tensor_16 = self.tensor_16.to('cuda')
+        self.is_cuda = True
+        return self
+    
+    def concat(self, other, dim=-1):
+        raise NotImplementedError()
 
 class KernelArgs:
     """
@@ -284,6 +303,7 @@ class KernelArgs:
         new_args = [a.with_config(self._configs[idx]) if isinstance(a, ProfilingTensor) else a for a in self.args]
         k = KernelArgs(*new_args, configs=self._configs)
         k._populated_idx = idx
+        k.cuda()
         return k
 
     def cuda(self):
@@ -318,11 +338,12 @@ class ProfilingJob:
         self.kernels = kernels
         self.baseline = baseline
         self.args = {k: args.tensors(arg_mask.get(k, None)) for k in kernels}
-        self.ref = self.kernels[ref](args.tensors_64(arg_mask.get(ref, None)))
+        self.ref = self.kernels[ref](*args.tensors_64(arg_mask.get(ref, None)))
         self.outputs = {k: ExperimentOutput(f'{label}:{args._populated_idx}:{k}') for k in kernels}
     
     def _run(self):
         for k in self.kernels:
+            print(f'running {k}')
             self.outputs[k].run(self.kernels[k], self.args[k], self.ref)
             time.sleep(2)
     
@@ -332,9 +353,10 @@ class ProfilingJob:
     
     def run(self, ncu=False):
         if ncu:
-            self._run()
-        else:
             self._run_ncu()
+        else:
+            self._run()
+        self.output_results()
     
     def output_results(self):
         for k in self.outputs:
@@ -345,7 +367,7 @@ def get_profiling_job_args(parse=True):
     Assumes you already
     """
     parser = argparse.ArgumentParser(description="Profiling Program For Gemm-Based Kernel")
-    parser.add_argument("config", type=int, description="the config number")
+    parser.add_argument("config", type=int, help="the config number")
 
     # you can use this as a print flag
     parser.add_argument("--ncu", action='store_true')

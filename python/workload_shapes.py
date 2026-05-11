@@ -1,4 +1,4 @@
-from profile_utils import ProfilingTensor, KernelArgs
+from profile_utils import ProfilingTensor, EmptyTensor, KernelArgs
 
 # Combine these args with a gemm shape
 GEMM_SHAPES = [
@@ -15,11 +15,13 @@ GEMM_SHAPES = [
 GEMM_ARGS_NT = KernelArgs(
     ProfilingTensor(('m', 'k')), 
     ProfilingTensor(('n', 'k')),
+    EmptyTensor(('m', 'n')),
     configs=GEMM_SHAPES)
 
 RMSNORM_LINEAR_ARGS_NT = KernelArgs(
     ProfilingTensor(('m', 'k')), 
     ProfilingTensor(('n', 'k')),
+    EmptyTensor(('m', 'n')),
     1e-5,
     configs=GEMM_SHAPES)
 
@@ -27,4 +29,5 @@ SWIGLU_NT = KernelArgs(
     ProfilingTensor(('m', 'k')),
     ProfilingTensor(('n', 'k')),
     ProfilingTensor(('n', 'k')),
+    EmptyTensor(('m', 'n')),
     configs=GEMM_SHAPES)

@@ -31,6 +31,7 @@ gemm = Gemm4SM90(
 if __name__ == "__main__":
     args = get_profiling_job_args()
     prob_args = GEMM_ARGS_NT.with_config(args.config)
+    prob_args.cuda()
     compiled_gemm = compile_cutedsl(prob_args.tensors(), gemm, include_stream=False)
 
     def cdsl_kernel(a_: torch.Tensor, b_: torch.Tensor):
@@ -40,8 +41,9 @@ if __name__ == "__main__":
 
     p = ProfilingJob(
         "gemm",
-        kernels={"torch": torch_kernel, "cutedsl": cdsl_kernel},
+        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel},
         args=prob_args,
+        arg_mask={"torch": (0, 1), "cutedsl": (0, 1)},
         baseline="torch",
         ref="torch")
     
