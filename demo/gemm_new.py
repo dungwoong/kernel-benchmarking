@@ -6,9 +6,9 @@ from profile_utils import ProfilingJob, get_profiling_job_args
 from cdsl_fn_utils import compile_cutedsl
 
 """
-Profiles torch gemm using two profiling methods
+Profiles torch gemm vs cutedsl gemm
 
-This script is likely unneeded anymore since we use do_bench for everything now.
+Uses new profiling setup
 """
 torch.manual_seed(18)
 
@@ -30,8 +30,9 @@ gemm = Gemm4SM90(
 
 if __name__ == "__main__":
     args = get_profiling_job_args()
-    prob_args = GEMM_ARGS_NT.with_config(args.config)
-    prob_args.cuda()
+    prob_args = GEMM_ARGS_NT.with_config(args.config) # Get set of tensors defining the problem
+
+    # Compile CuteDSL manually
     compiled_gemm = compile_cutedsl(prob_args.tensors(), gemm, include_stream=False)
 
     def cdsl_kernel(a_: torch.Tensor, b_: torch.Tensor):

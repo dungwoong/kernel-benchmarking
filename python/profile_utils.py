@@ -283,12 +283,14 @@ class EmptyTensor(ProfilingTensor):
 
 class KernelArgs:
     """
+    User chooses from a set of predefined configs, 
+    rather than passing arbitrary values
+
     Example:
     t1 = ProfilingTensor((64, 'k'))
     t2 = ProfilingTensor(('k', 128))
     args = KernelArgs(t1, t2, configs=[{'k': 5}, {'k': 6}])
     a1 = args.with_config(1)
-    a1.cuda()
     """
     def __init__(self, *args, configs=None):
         self.args = args
@@ -328,11 +330,16 @@ class KernelArgs:
 
 
 class ProfilingJob:
-    # TODO test if this affects overhead at all
     def __init__(self, label: str, kernels: dict, args: KernelArgs, baseline: str, ref: str, arg_mask: dict=None):
         """
-        Ref should be a function that can be called on f64 inputs
-        Cutedsl kernel etc. should be compiled already and passed in as a callable
+        label: workload
+        kernels: dict of (name: str, kernel: callable)
+        args: KernelArgs containing a set of tensors
+        baseline: str index of the baseline
+        ref: str index of the ref. NOTE: the callable kernels[ref] must be able to execute on FP64 inputs
+        arg_mask: Each kernel may use different tensors from <args>. Index them with <arg_mask>
+            e.g. {'k1': (0, 1), 'k2': (0, 1, 2)}
+            Passing None as the value will default to all args. Passing no arg mask will use all args for all kernels.
         """
         arg_mask = dict() if arg_mask is None else arg_mask
         self.kernels = kernels
@@ -364,12 +371,11 @@ class ProfilingJob:
 
 def get_profiling_job_args(parse=True):
     """
-    Assumes you already
+    Arguments specifically for ProfilingJob setup
     """
     parser = argparse.ArgumentParser(description="Profiling Program For Gemm-Based Kernel")
     parser.add_argument("config", type=int, help="the config number")
 
-    # you can use this as a print flag
     parser.add_argument("--ncu", action='store_true')
     if parse:
         args = parser.parse_args()
