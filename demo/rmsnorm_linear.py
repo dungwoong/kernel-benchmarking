@@ -8,6 +8,8 @@ import cuda.bindings.driver as cuda
 from profile_utils import ExperimentOutput, get_normal_bernoulli, get_args
 from cutedsl_kernels import RMSNormLinear2SM90
 from cdsl_fn_utils import make_fake_tensor, compile_cutedsl, STREAM
+from trt_utils import build_trt_runner
+from baselines.rmsnorm_swiglu_trt import RMSNormLinearModule
 from triton.testing import do_bench
 
 """
@@ -44,6 +46,7 @@ if __name__ == "__main__":
     args = get_args()
     torch_output = ExperimentOutput('rmsnorm_lin_torch', args.m, args.n, args.k)
     cdsl_output = ExperimentOutput('rmsnorm_lin_cdsl', args.m, args.n, args.k)
+    trt_output = ExperimentOutput('rmsnorm_lin_trt', args.m, args.n, args.k)
     max_output = ExperimentOutput('rmsnorm_lin_max', args.m, args.n, args.k)
 
     m, n, k = args.m, args.n, args.k
@@ -67,7 +70,17 @@ if __name__ == "__main__":
     def gemm(a_, b_):
         return a_ @ b_.t()
     
+    trt_runner = build_trt_runner(
+        module=RMSNormLinearModule(eps=EPS),
+        example_inputs=(a, b),
+        output_shape=(m, n),
+        cache_key=f"rmsnorm_linear_m{m}_n{n}_k{k}_bf16",
+        input_names=["a", "b"],
+    )
+
     cdsl_output.run(cdsl_kernel, tensors, ref)
+    time.sleep(2)
+    trt_output.run(trt_runner, tensors, ref)
     time.sleep(2)
     torch_output.run(compiled_torch, tensors, ref)
     time.sleep(2)
@@ -76,11 +89,13 @@ if __name__ == "__main__":
     if args.to_csv:
         print(ExperimentOutput.list_to_csv(torch_output.values()))
         print(ExperimentOutput.list_to_csv(cdsl_output.values()))
+        print(ExperimentOutput.list_to_csv(trt_output.values()))
         print(ExperimentOutput.list_to_csv(max_output.values()))
     else:
         print(ExperimentOutput.header())
         print(torch_output.values())
         print(cdsl_output.values())
+        print(trt_output.values())
         print(torch_output.ms_median / cdsl_output.ms_median)
 
         # Check max attainable speedup (rmsnorm + gemm / gemm)
