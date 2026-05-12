@@ -265,7 +265,7 @@ class ProfilingTensor:
 class EmptyTensor(ProfilingTensor):
     def with_config(self, config: Dict[str, int]):
         assert self._shape is not None
-        ret = ProfilingTensor(self._shape)
+        ret = EmptyTensor(self._shape)
         ret.populate(config)
         return ret
     
