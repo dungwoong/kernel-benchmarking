@@ -19,4 +19,4 @@ mkdir -p $SCRATCH/flashinfer_cache
 apptainer exec --nv \
   --env CUDA_HOME=/usr/local/cuda \
   -B $SCRATCH/flashinfer_cache:$HOME/.cache/flashinfer \
-  $CONTAINER bash -c "source ./add_path.sh && ./run_scripts/profile.sh > profile_data.csv"
+  $CONTAINER bash -c "source ./add_path.sh && $SCRIPT > $OUTPUT"
