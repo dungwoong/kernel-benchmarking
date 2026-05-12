@@ -6,7 +6,7 @@ from cutlass import cute
 import cuda.bindings.driver as cuda
 
 from profile_utils import ExperimentOutput, get_normal_bernoulli, get_kaiming, get_args
-from cutedsl_kernels import SwigluSM90
+from cutedsl_kernels import Swiglu3SM90, Swiglu2SM90
 from cdsl_fn_utils import make_fake_tensor, compile_cutedsl, STREAM
 
 """
@@ -14,15 +14,38 @@ Profiles torch swiglu(torch) + cutedsl kernel
 """
 torch.manual_seed(18)
 
-swiglu = SwigluSM90(
-    tile_shape_mn=(128, 128), 
+# swiglu = SwigluSM90(
+#     tile_shape_mn=(128, 128), 
+#     epi_tile_mn=(128, 32),
+#     cluster_shape_mnk=(2, 1, 1), 
+#     atom_layout_mn=(2, 1),
+#     ab_stage=3,
+#     reuse_ab=False,
+#     is_persistent=True,
+#     gemm_n_prologue=0)
+swiglu = Swiglu3SM90(
+    tile_shape_mnk=(128, 128, 64),
     epi_tile_mn=(128, 32),
-    cluster_shape_mnk=(2, 1, 1), 
+    cluster_shape_mnk=(2, 1, 1),
     atom_layout_mn=(2, 1),
     ab_stage=3,
+    epi_stage=2,
     reuse_ab=False,
     is_persistent=True,
-    gemm_n_prologue=0)
+    gemm_n_prologue=0,
+)
+
+swiglu_ss = Swiglu2SM90(
+    tile_shape_mnk=(128, 128, 32),
+    epi_tile_mn=(128, 32),
+    cluster_shape_mnk=(2, 1, 1),
+    atom_layout_mn=(2, 1),
+    ab_stage=6,
+    epi_stage=2,
+    reuse_ab=False,
+    is_persistent=True,
+    gemm_n_prologue=1,
+)
 
 def torch_kernel(a: torch.Tensor, bb1: torch.Tensor):
     o = a @ bb1.t()
@@ -38,9 +61,11 @@ def torch_unfused(a: torch.Tensor, b: torch.Tensor, b1: torch.Tensor):
 if __name__ == "__main__":
     args = get_args()
     torch_output = ExperimentOutput('swiglu_torch', args.m, args.n, args.k)
+    cdsl_ss_output = ExperimentOutput('swiglu_cdsl_ss', args.m, args.n, args.k)
     # torch_unfused_output = ExperimentOutput('swiglu_torch_unfused', args.m, args.n, args.k)
     cdsl_output = ExperimentOutput('swiglu_cdsl', args.m, args.n, args.k)
-    
+    max_output = ExperimentOutput('swiglu_max', args.m, args.n, args.k)
+
     m, n, k = args.m, args.n, args.k
     
     a64 = get_normal_bernoulli((m, k), dtype=torch.float64)
@@ -55,12 +80,22 @@ if __name__ == "__main__":
     c = torch.empty((m, n), dtype=torch.bfloat16).to('cuda')
     tensors = (a, b, b1)
     torch_tensors = (a, bb1)
-    compiled_gemm = compile_cutedsl((a, b, b1, c), swiglu)
+    compiled_gemm = compile_cutedsl((a, b, b1, c), swiglu, False)
+    compiled_gemm_ss = compile_cutedsl((a, b, b1, c), swiglu_ss, False)
     ref = torch_unfused(a64, b64, b164)
+    ref_gemm = a @ bb1.t()
+
+    def gemm(a_, b_):
+        return a_ @ b_.t()
 
     def cdsl_kernel(a_: torch.Tensor, b_: torch.Tensor, b1_: torch.Tensor):
         o = torch.empty(a_.shape[0], b_.shape[0], dtype=torch.bfloat16, device='cuda')
-        compiled_gemm(a_, b_, b1_, o, STREAM)
+        compiled_gemm(a_, b_, b1_, o)
+        return o
+    
+    def cdsl_kernel_ss(a_: torch.Tensor, b_: torch.Tensor, b1_: torch.Tensor):
+        o = torch.empty(a_.shape[0], b_.shape[0], dtype=torch.bfloat16, device='cuda')
+        compiled_gemm_ss(a_, b_, b1_, o)
         return o
     
     torch_compiled = torch.compile(torch_kernel)
@@ -68,13 +103,18 @@ if __name__ == "__main__":
     
     cdsl_output.run(cdsl_kernel, tensors, ref)
     time.sleep(2)
+    cdsl_ss_output.run(cdsl_kernel_ss, tensors, ref)
+    time.sleep(2)
     torch_output.run(torch_compiled, torch_tensors, ref)
-    # time.sleep(2)
+    time.sleep(2)
+    max_output.run(gemm, torch_tensors, ref_gemm)
     # torch_unfused_output.run(torch_unfused_compiled, tensors, ref)
     
     if args.to_csv:
         print(ExperimentOutput.list_to_csv(torch_output.values()))
         print(ExperimentOutput.list_to_csv(cdsl_output.values()))
+        print(ExperimentOutput.list_to_csv(cdsl_ss_output.values()))
+        print(ExperimentOutput.list_to_csv(max_output.values()))
     else:
         print(ExperimentOutput.header())
         print(torch_output.values())
