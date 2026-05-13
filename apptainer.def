@@ -9,12 +9,16 @@ From: pytorch/pytorch:2.8.0-cuda12.9-cudnn9-devel
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 
+# %apprun runs under /bin/sh (dash on Ubuntu)
+# call .venv binaries directly instead of `source .venv/bin/activate` (activate is bash-only).
 %apprun setup
-    set -euo pipefail
+    set -eu
+    # Do not inherit host certificate paths
     unset REQUESTS_CA_BUNDLE CURL_CA_BUNDLE SSL_CERT_FILE PIP_CERT
+    # Use container CUDA
     export CUDA_HOME=/usr/local/cuda
     [ -n "${SCRATCH:-}" ] && export PIP_CACHE_DIR=$SCRATCH/.cache/pip
-
+    
     if [ ! -d .venv ]; then
         python -m venv --system-site-packages .venv
     fi
@@ -38,15 +42,16 @@ From: pytorch/pytorch:2.8.0-cuda12.9-cudnn9-devel
         nvidia-nvtx-cu12==12.8.90
 
 %apprun build_fa3
-    set -euo pipefail
+    set -eu
     unset REQUESTS_CA_BUNDLE CURL_CA_BUNDLE SSL_CERT_FILE PIP_CERT
     export CUDA_HOME=/usr/local/cuda
     export TORCH_CUDA_ARCH_LIST="9.0"
+    # FA3 setup.py tries to download a prebuilt wheel on compute but does not have internet access so skip that part
+    export FLASH_ATTENTION_FORCE_BUILD=TRUE
     [ -n "${SCRATCH:-}" ] && export PIP_CACHE_DIR=$SCRATCH/.cache/pip
 
-    source .venv/bin/activate
-    if python -c "import flash_attn_interface" 2>/dev/null; then
+    if .venv/bin/python -c "import flash_attn_interface" 2>/dev/null; then
         echo "FA3 already installed, skipping"
         exit 0
     fi
-    MAX_JOBS=${MAX_JOBS:-4} pip install --no-build-isolation ./third_party/flash_attention/hopper
+    MAX_JOBS=${MAX_JOBS:-4} .venv/bin/pip install --no-build-isolation ./third_party/flash_attention/hopper
