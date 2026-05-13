@@ -39,3 +39,6 @@ wheel==0.45.1
 # CuteDSL
 nvidia-cutlass-dsl==4.4.2
 cuda-python==12.9.0
+
+# FlashAttention 2 (prebuilt wheel for cu12 + torch 2.8 + cp311 + cxx11abiTRUE)
+flash-attn @ https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3+cu12torch2.8cxx11abiTRUE-cp311-cp311-linux_x86_64.whl

@@ -13,10 +13,9 @@ echo using script $SCRIPT
 module load apptainer
 
 # Create and bind the flashinfer cache to apptainer to not run into disk quota errors
+# For all the other scripts can be saved into ~/.bashrc
 mkdir -p $SCRATCH/flashinfer_cache
+export APPTAINER_BINDPATH="$SCRATCH/flashinfer_cache:$HOME/.cache/flashinfer"
 
-# Override to the apptainer CUDA version (12.9)
 apptainer exec --nv \
-  --env CUDA_HOME=/usr/local/cuda \
-  -B $SCRATCH/flashinfer_cache:$HOME/.cache/flashinfer \
   $CONTAINER bash -c "source ./add_path.sh && $SCRIPT > $OUTPUT"
