@@ -1,8 +1,10 @@
 Bootstrap: docker
 From: pytorch/pytorch:2.8.0-cuda12.9-cudnn9-devel
 
-%files
-    requirements.txt /opt
-
-%post
-    pip install -r /opt/requirements.txt
+%apprun setup
+    set -e
+    unset REQUESTS_CA_BUNDLE CURL_CA_BUNDLE SSL_CERT_FILE PIP_CERT 
+    if [ ! -d .venv ]; then
+        python -m venv --system-site-packages .venv
+    fi
+    .venv/bin/pip install -r requirements.txt
