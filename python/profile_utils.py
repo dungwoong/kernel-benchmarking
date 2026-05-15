@@ -196,6 +196,25 @@ def get_args(parse=True):
         return args
     return parser
 
+
+def get_attention_args(parse=True):
+    """
+    Args for attention-decode profiling
+    q_len  = new tokens per call 
+    kv_len = total KV cache length 
+    nheads = number of attention heads
+    """
+    parser = argparse.ArgumentParser(description="Profiling Program For Attention Kernel")
+    parser.add_argument("q_len", type=int)
+    parser.add_argument("kv_len", type=int)
+    parser.add_argument("nheads", type=int)
+
+    parser.add_argument("--to_csv", action='store_true')
+    if parse:
+        args = parser.parse_args()
+        return args
+    return parser
+
 def get_normal_bernoulli(shape, p=0.001, dtype=torch.bfloat16, device="cuda", ncu=False) -> torch.Tensor:
     """References FlashAttention3"""
     gen_device = "cpu" if ncu else device

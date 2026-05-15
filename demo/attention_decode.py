@@ -4,7 +4,7 @@ import flashinfer
 import flash_attn
 import flash_attn_interface
 
-from profile_utils import ExperimentOutput, get_normal_bernoulli, get_args
+from profile_utils import ExperimentOutput, get_normal_bernoulli, get_attention_args
 
 torch.manual_seed(18)
 
@@ -68,12 +68,39 @@ class FA2Baseline(AttentionBaseline):
         return flash_attn.flash_attn_func(q, full_K, full_V, causal=CAUSAL)
 
 
+class FA2FlashDecodeBaseline(AttentionBaseline):
+
+    def __call__(self, q, k_new, v_new):
+        return flash_attn.flash_attn_with_kvcache(
+            q=q,
+            k_cache=self.cache_K.unsqueeze(0),
+            v_cache=self.cache_V.unsqueeze(0),
+            k=k_new,
+            v=v_new,
+            cache_seqlens=self.P,
+            causal=CAUSAL,
+        )
+
+
 class FA3Baseline(AttentionBaseline):
     def __call__(self, q, k_new, v_new):
         self.write_new_kv(k_new, v_new)
         full_K = self.cache_K.unsqueeze(0)
         full_V = self.cache_V.unsqueeze(0)
         return flash_attn_interface.flash_attn_func(q, full_K, full_V, causal=CAUSAL)
+
+
+class FA3FlashDecodeBaseline(AttentionBaseline):
+    def __call__(self, q, k_new, v_new):
+        return flash_attn_interface.flash_attn_with_kvcache(
+            q=q,
+            k_cache=self.cache_K.unsqueeze(0),
+            v_cache=self.cache_V.unsqueeze(0),
+            k=k_new,
+            v=v_new,
+            cache_seqlens=self.P,
+            causal=CAUSAL,
+        )
 
 
 class TorchSDPABaseline(AttentionBaseline):
@@ -89,8 +116,8 @@ class TorchSDPABaseline(AttentionBaseline):
 
 
 if __name__ == "__main__":
-    args = get_args()
-    q_len, kv_len, nheads = args.m, args.n, args.k
+    args = get_attention_args()
+    q_len, kv_len, nheads = args.q_len, args.kv_len, args.nheads
     past_len = kv_len - q_len
 
     # past_len prefix already in cache
@@ -145,10 +172,12 @@ if __name__ == "__main__":
 
     pairs = []
     for name, cls in [
-        ("attn_torch_sdpa", TorchSDPABaseline),
-        ("attn_flashinfer", FlashInferBaseline),
-        ("attn_fa2",        FA2Baseline),
-        ("attn_fa3",        FA3Baseline),
+        ("attn_torch_sdpa",      TorchSDPABaseline),
+        ("attn_flashinfer",      FlashInferBaseline),
+        ("attn_fa2",             FA2Baseline),
+        ("attn_fa2_flashdecode", FA2FlashDecodeBaseline),
+        ("attn_fa3",             FA3Baseline),
+        ("attn_fa3_flashdecode", FA3FlashDecodeBaseline),
     ]:
         cK, cV = make_cache()
         baseline = cls(M=q_len, P=past_len, H=nheads, D=HEAD_DIM, cache_K=cK, cache_V=cV)
