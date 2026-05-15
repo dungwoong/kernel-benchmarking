@@ -26,29 +26,17 @@ def naive_attention(q, k_cache, v_cache):
 
 
 class AttentionBaseline:
-    """pre-allocated contiguous KV cache of shape (kv_len, H, D)
-    each __call__ writes the new M tokens into cache_K/cache_V[P:P+M]
-    then runs attention against the full cache buffer
+    """holds a contiguous KV cache (kv_len, H, D) pre-populated to kv_len
+    each __call__ times only the attention op
     """
 
-    def __init__(self, M, P, H, D, cache_K, cache_V):
-        self.M = M
-        self.P = P
-        self.H = H
-        self.D = D
+    def __init__(self, cache_K, cache_V):
         self.cache_K = cache_K
         self.cache_V = cache_V
 
-    def write_new_kv(self, k_new, v_new):
-        # k_new, v_new arrive as (1, M, H, D) from the shared kernel inputs
-        # strip the batch dim to match the 3D cache layout, then slice-write
-        self.cache_K[self.P:self.P + self.M, :, :] = k_new.squeeze(0)
-        self.cache_V[self.P:self.P + self.M, :, :] = v_new.squeeze(0)
-
 
 class FlashInferBaseline(AttentionBaseline):
-    def __call__(self, q, k_new, v_new):
-        self.write_new_kv(k_new, v_new)
+    def __call__(self, q):
         out = flashinfer.single_prefill_with_kv_cache(
             q=q.squeeze(0),
             k=self.cache_K,
@@ -60,8 +48,7 @@ class FlashInferBaseline(AttentionBaseline):
 
 
 class FA2Baseline(AttentionBaseline):
-    def __call__(self, q, k_new, v_new):
-        self.write_new_kv(k_new, v_new)
+    def __call__(self, q):
         # FA expects (B, S, H, D), unsqueeze the cache as a view
         full_K = self.cache_K.unsqueeze(0)
         full_V = self.cache_V.unsqueeze(0)
@@ -69,76 +56,57 @@ class FA2Baseline(AttentionBaseline):
 
 
 class FA2FlashDecodeBaseline(AttentionBaseline):
-
-    def __call__(self, q, k_new, v_new):
+    def __call__(self, q):
         return flash_attn.flash_attn_with_kvcache(
             q=q,
             k_cache=self.cache_K.unsqueeze(0),
             v_cache=self.cache_V.unsqueeze(0),
-            k=k_new,
-            v=v_new,
-            cache_seqlens=self.P,
+            cache_seqlens=self.cache_K.shape[0],
             causal=CAUSAL,
         )
 
 
 class FA3Baseline(AttentionBaseline):
-    def __call__(self, q, k_new, v_new):
-        self.write_new_kv(k_new, v_new)
+    def __call__(self, q):
         full_K = self.cache_K.unsqueeze(0)
         full_V = self.cache_V.unsqueeze(0)
         return flash_attn_interface.flash_attn_func(q, full_K, full_V, causal=CAUSAL)
 
 
 class FA3FlashDecodeBaseline(AttentionBaseline):
-    def __call__(self, q, k_new, v_new):
+    def __call__(self, q):
         return flash_attn_interface.flash_attn_with_kvcache(
             q=q,
             k_cache=self.cache_K.unsqueeze(0),
             v_cache=self.cache_V.unsqueeze(0),
-            k=k_new,
-            v=v_new,
-            cache_seqlens=self.P,
+            cache_seqlens=self.cache_K.shape[0],
             causal=CAUSAL,
         )
 
 
 class TorchSDPABaseline(AttentionBaseline):
-    def __call__(self, q, k_new, v_new):
-        self.write_new_kv(k_new, v_new)
+    def __call__(self, q):
         # SDPA wants (B, H, S, D)
         full_K = self.cache_K.unsqueeze(0).transpose(1, 2)
         full_V = self.cache_V.unsqueeze(0).transpose(1, 2)
         o = torch.nn.functional.scaled_dot_product_attention(
             q.transpose(1, 2), full_K, full_V, is_causal=CAUSAL,
         )
-        return o.transpose(1, 2).contiguous()
+        # transpose back to (B, S, H, D)
+        return o.transpose(1, 2)
 
 
 if __name__ == "__main__":
     args = get_attention_args()
     q_len, kv_len, nheads = args.q_len, args.kv_len, args.nheads
-    past_len = kv_len - q_len
 
-    # past_len prefix already in cache
-    # q_len new tokens (k_new/v_new) get written into cache[past_len:past_len + q_len]
-    # attention runs against the post-write full cache
-
-    past_K_64 = get_normal_bernoulli(
-        (past_len, nheads, HEAD_DIM),
+    # KV cache pre-populated with kv_len tokens
+    full_K_64 = get_normal_bernoulli(
+        (kv_len, nheads, HEAD_DIM),
         dtype=torch.float64,
     )
-    past_V_64 = get_normal_bernoulli(
-        (past_len, nheads, HEAD_DIM),
-        dtype=torch.float64,
-    )
-
-    k_new_64 = get_normal_bernoulli(
-        (q_len, nheads, HEAD_DIM),
-        dtype=torch.float64,
-    )
-    v_new_64 = get_normal_bernoulli(
-        (q_len, nheads, HEAD_DIM),
+    full_V_64 = get_normal_bernoulli(
+        (kv_len, nheads, HEAD_DIM),
         dtype=torch.float64,
     )
 
@@ -147,18 +115,10 @@ if __name__ == "__main__":
         dtype=torch.float64,
     )
 
-    # post-write full cache used by the fp64 reference
-    full_K_64 = torch.cat([past_K_64, k_new_64], dim=0)
-    full_V_64 = torch.cat([past_V_64, v_new_64], dim=0)
-
     # kernels run in bf16
     full_K = full_K_64.to(torch.bfloat16)
     full_V = full_V_64.to(torch.bfloat16)
     q = q_64.to(torch.bfloat16)
-
-    # new K/V passed into each backend, written into the cache clone during forward
-    k_new = k_new_64.to(torch.bfloat16).unsqueeze(0)
-    v_new = v_new_64.to(torch.bfloat16).unsqueeze(0)
 
     ref = naive_attention(
         q_64,
@@ -166,8 +126,8 @@ if __name__ == "__main__":
         full_V_64.unsqueeze(0),
     )
 
-    # each baseline holds its own copy of the cache so writes do not interfere
-    def make_cache() :
+    # each baseline gets its own cache copy
+    def make_cache():
         return full_K.clone(), full_V.clone()
 
     pairs = []
@@ -180,10 +140,10 @@ if __name__ == "__main__":
         ("attn_fa3_flashdecode", FA3FlashDecodeBaseline),
     ]:
         cK, cV = make_cache()
-        baseline = cls(M=q_len, P=past_len, H=nheads, D=HEAD_DIM, cache_K=cK, cache_V=cV)
+        baseline = cls(cache_K=cK, cache_V=cV)
         pairs.append((name, baseline))
 
-    tensors = (q, k_new, v_new)
+    tensors = (q,)
     outputs = []
     for name, baseline in pairs:
         out = ExperimentOutput(name, q_len, kv_len, nheads)

@@ -1,55 +1,31 @@
 Bootstrap: docker
 From: pytorch/pytorch:2.8.0-cuda12.9-cudnn9-devel
 
+%files
+    requirements.txt /opt/requirements.txt
+
 %post
     set -e
     apt-get update
-    # For installing FA3 from Git submodule
+    # git for build_fa3 submodule, ca-certificates for pip wheel downloads
     apt-get install -y --no-install-recommends git ca-certificates
+    pip install --no-cache-dir -r /opt/requirements.txt
     apt-get clean
     rm -rf /var/lib/apt/lists/*
-
-# %apprun runs under /bin/sh (dash on Ubuntu)
-# call .venv binaries directly instead of `source .venv/bin/activate` (activate is bash-only).
-%apprun setup
-    set -eu
-    # Do not inherit host certificate paths
-    unset REQUESTS_CA_BUNDLE CURL_CA_BUNDLE SSL_CERT_FILE PIP_CERT
-    # Use container CUDA
-    export CUDA_HOME=/usr/local/cuda
-    [ -n "${SCRATCH:-}" ] && export PIP_CACHE_DIR=$SCRATCH/.cache/pip
-    
-    if [ ! -d .venv ]; then
-        python -m venv --system-site-packages .venv
-    fi
-    .venv/bin/pip install -r requirements.txt
-    # Force nvidia-* into the venv: --system-site-packages otherwise lets pip skip these
-    # leaving torch's RPATH pointing at empty dirs.
-    .venv/bin/pip install --force-reinstall --no-deps \
-        nvidia-cublas-cu12==12.8.4.1 \
-        nvidia-cuda-cupti-cu12==12.8.90 \
-        nvidia-cuda-nvrtc-cu12==12.8.93 \
-        nvidia-cuda-runtime-cu12==12.8.90 \
-        nvidia-cudnn-cu12==9.10.2.21 \
-        nvidia-cufft-cu12==11.3.3.83 \
-        nvidia-cufile-cu12==1.13.1.3 \
-        nvidia-curand-cu12==10.3.9.90 \
-        nvidia-cusolver-cu12==11.7.3.90 \
-        nvidia-cusparse-cu12==12.5.8.93 \
-        nvidia-cusparselt-cu12==0.7.1 \
-        nvidia-nccl-cu12==2.27.3 \
-        nvidia-nvjitlink-cu12==12.8.93 \
-        nvidia-nvtx-cu12==12.8.90
 
 %apprun build_fa3
     set -eu
     unset REQUESTS_CA_BUNDLE CURL_CA_BUNDLE SSL_CERT_FILE PIP_CERT
     export CUDA_HOME=/usr/local/cuda
     export TORCH_CUDA_ARCH_LIST="9.0"
-    # FA3 setup.py tries to download a prebuilt wheel on compute but does not have internet access so skip that part
+    # skip prebuilt-wheel download, compute nodes have no internet
     export FLASH_ATTENTION_FORCE_BUILD=TRUE
-    [ -n "${SCRATCH:-}" ] && export PIP_CACHE_DIR=$SCRATCH/.cache/pip
 
+    # the .sif is read-only, install FA3 into a host-side venv
+    # --system-site-packages reuses the image's torch and requirements
+    if [ ! -d .venv ]; then
+        python -m venv --system-site-packages .venv
+    fi
     if .venv/bin/python -c "import flash_attn_interface" 2>/dev/null; then
         echo "FA3 already installed, skipping"
         exit 0

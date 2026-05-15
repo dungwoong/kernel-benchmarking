@@ -1,6 +1,6 @@
 # Setup
 
-Compute Canada cluster (H100, Apptainer).
+Build and run the benchmark container with Apptainer. If you are on a Slurm HPC cluster, read [Slurm HPC clusters](#slurm-hpc-clusters) first.
 
 ## Clone
 
@@ -9,53 +9,66 @@ git clone https://github.com/dungwoong/kernel-benchmarking.git && cd kernel-benc
 git submodule update --init --recursive
 ```
 
-## Build the container (login node)
+## Build the container
+
+`requirements.txt` is installed into the image at build time, so the `.sif` is self-contained. The build needs internet access.
 
 ```bash
-export APPTAINER_CACHEDIR=$SCRATCH/.apptainer/cache
-export APPTAINER_TMPDIR=$SCRATCH/apptainer_tmp
-mkdir -p $APPTAINER_CACHEDIR $APPTAINER_TMPDIR
-
 apptainer build --fakeroot CuteDSL2.sif apptainer.def
-apptainer run --app setup CuteDSL2.sif
 ```
 
-## Build FA3 (compute node, GPU)
+## Build FA3
+
+FA3 compiles CUDA from source, so it is a separate step and needs a machine with a GPU.
+
+```bash
+apptainer run --nv --app build_fa3 CuteDSL2.sif
+```
+
+Optionally pass `MAX_JOBS=8` to parallelize the compile.
+
+**Run benchmarks**
+
+```bash
+sbatch --export=ALL,SCRIPT=run_scripts/profile.sh,OUTPUT=out.csv slurm_profile.sh
+```
+
+## Slurm HPC clusters
+
+**Apptainer module**
+
+```bash
+module load apptainer
+```
+
+**Cache variables**
+
+```bash
+cat >> ~/.bashrc <<'EOF'
+
+# kernel-benchmarking apptainer config
+export CONTAINER=CuteDSL2.sif
+export APPTAINER_CACHEDIR=$SCRATCH/.apptainer/cache
+export APPTAINER_TMPDIR=${SLURM_TMPDIR:-$SCRATCH/apptainer_tmp}
+export APPTAINER_BINDPATH=$SCRATCH/flashinfer_cache:$HOME/.cache/flashinfer
+EOF
+source ~/.bashrc
+mkdir -p "$APPTAINER_CACHEDIR" "$SCRATCH/apptainer_tmp" "$SCRATCH/flashinfer_cache"
+```
+
+**Build FA3**
+
+Build the container on a login node (internet access), then allocate a GPU node for `build_fa3`:
 
 ```bash
 salloc --gres=gpu:h100:1 --cpus-per-task=8 --mem=32G --time=03:00:00
 apptainer run --nv --app build_fa3 CuteDSL2.sif
 ```
 
-For the apptainer build_fa3 script optionally can specify MAX_JOBS=8.
-
-## Run a benchmark
-
-```bash
-sbatch --export=ALL,CONTAINER=CuteDSL2.sif,SCRIPT=run_scripts/profile.sh,OUTPUT=out.csv slurm_profile.sh
-```
-
-`slurm_profile.sh` handles `APPTAINER_BINDPATH` and module loading.
-
-## Optional: persist env so you don't re-export for each shell
-
-```bash
-cat >> ~/.bashrc <<'EOF'
-export APPTAINER_CACHEDIR=$SCRATCH/.apptainer/cache
-export APPTAINER_TMPDIR=${SLURM_TMPDIR:-$SCRATCH/apptainer_tmp}
-export APPTAINER_BINDPATH="$SCRATCH/flashinfer_cache:$HOME/.cache/flashinfer"
-EOF
-```
-
-## Optional: clean rebuild (free disk quota)
+**Clean rebuild** to free disk quota:
 
 ```bash
 rm -f CuteDSL2.sif
 rm -rf .venv
-rm -rf $SCRATCH/kernel-benchmarking-venv         # (if venv is symlinked to scratch)
-rm -rf $SCRATCH/.apptainer/cache                 # Docker layer blobs (~6 GB, will redownload)
-rm -rf $SCRATCH/.cache/pip                       # pip wheel cache (~3 GB, will redownload)
-rm -rf $SCRATCH/apptainer_tmp/*
+rm -rf $SCRATCH/.apptainer/cache $SCRATCH/apptainer_tmp/* $SCRATCH/flashinfer_cache/*
 ```
-
-Then redo from `Build the container`.
