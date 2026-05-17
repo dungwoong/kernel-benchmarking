@@ -50,7 +50,6 @@ cat >> ~/.bashrc <<'EOF'
 export CONTAINER=CuteDSL2.sif
 export APPTAINER_CACHEDIR=$SCRATCH/.apptainer/cache
 export APPTAINER_TMPDIR=${SLURM_TMPDIR:-$SCRATCH/apptainer_tmp}
-export APPTAINER_BINDPATH=$SCRATCH/flashinfer_cache:$HOME/.cache/flashinfer
 EOF
 source ~/.bashrc
 mkdir -p "$APPTAINER_CACHEDIR" "$SCRATCH/apptainer_tmp" "$SCRATCH/flashinfer_cache"
@@ -58,12 +57,16 @@ mkdir -p "$APPTAINER_CACHEDIR" "$SCRATCH/apptainer_tmp" "$SCRATCH/flashinfer_cac
 
 **Build FA3**
 
-Build the container on a login node (internet access), then allocate a GPU node for `build_fa3`:
+Build the container, then allocate a GPU node for `build_fa3`:
 
 ```bash
 salloc --gres=gpu:h100:1 --cpus-per-task=8 --mem=32G --time=03:00:00
 apptainer run --nv --app build_fa3 CuteDSL2.sif
 ```
+
+**Run scripts**
+
+After the build add `export APPTAINER_BINDPATH=$SCRATCH/flashinfer_cache:$HOME/.cache/flashinfer` to the ~/.bashrc to avoid flashinfer cache exceeding the home disk quota. The apptainer inherits this from the host via sbatch --export=ALL.
 
 **Clean rebuild** to free disk quota:
 

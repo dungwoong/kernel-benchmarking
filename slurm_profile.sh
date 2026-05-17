@@ -12,10 +12,5 @@ echo using container $CONTAINER
 echo using script $SCRIPT
 module load apptainer
 
-# Create and bind the flashinfer cache to apptainer to not run into disk quota errors
-# For all the other scripts can be saved into ~/.bashrc
-mkdir -p $SCRATCH/flashinfer_cache
-export APPTAINER_BINDPATH="$SCRATCH/flashinfer_cache:$HOME/.cache/flashinfer"
-
 apptainer exec --nv \
   $CONTAINER bash -c "source ./add_path.sh && $SCRIPT > $OUTPUT"
