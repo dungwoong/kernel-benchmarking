@@ -79,22 +79,17 @@ def build_trt_runner(
     engine = _RUNTIME.deserialize_cuda_engine(engine_bytes)
     context = engine.create_execution_context()
     output = torch.empty(output_shape, dtype=output_dtype, device="cuda")
-    # Dedicated non-default stream: TRT warns on default stream and adds extra syncs
-    stream = torch.cuda.Stream()
 
-    _refs = (engine, context, output, stream)  # keep alive across closure use
+    _refs = (engine, context, output)  # keep alive across closure use
 
     def run(*tensors: torch.Tensor) -> torch.Tensor:
-        assert len(tensors) == len(input_names), (
-            f"expected {len(input_names)} inputs, got {len(tensors)}"
-        )
         for name, t in zip(input_names, tensors):
             context.set_tensor_address(name, t.data_ptr())
         context.set_tensor_address(output_name, output.data_ptr())
         # execute_async_v3 (vs Trinity's execute_v2): name-based bindings, explicit stream
-        with torch.cuda.stream(stream):
-            context.execute_async_v3(stream_handle=stream.cuda_stream)
-        stream.synchronize()
+        context.execute_async_v3(
+            stream_handle=torch.cuda.current_stream().cuda_stream
+        )
         return output
 
     run._trt_refs = _refs
