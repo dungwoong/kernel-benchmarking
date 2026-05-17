@@ -68,7 +68,9 @@ apptainer run --nv --app build_fa3 CuteDSL2.sif
 
 After the build add `export APPTAINER_BINDPATH=$SCRATCH/flashinfer_cache:$HOME/.cache/flashinfer` to the ~/.bashrc to avoid flashinfer cache exceeding the home disk quota. The apptainer inherits this from the host via sbatch --export=ALL.
 
-And create the folder `mkdir -p $SCRATCH/flashinfer_cache`
+And create the folder `mkdir -p $SCRATCH/flashinfer_cache`.
+
+Then run `sbatch --export=ALL",SCRIPT="run_scripts/profile.sh",OUTPUT="out.csv" slurm_profile.sh`
 
 **Clean rebuild** to free disk quota:
 
