@@ -19,7 +19,19 @@ apptainer build --fakeroot CuteDSL2.sif apptainer.def
 
 ## Build FA3
 
-FA3 compiles CUDA from source, so it is a separate step and needs a machine with a GPU.
+FA3's build downloads nvcc/ptxas toolchain for CUDA 12.9, and compute nodes have no internet. Pre-fetch it on the login node first. It caches to `~/.flashattn`, which the build reuses:
+
+```bash
+mkdir -p ~/.flashattn/nvidia/nvcc ~/.flashattn/nvidia/ptxas
+curl -fL -o /tmp/nvcc.tar.xz \
+  https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvcc/linux-x86_64/cuda_nvcc-linux-x86_64-12.6.85-archive.tar.xz
+tar -xf /tmp/nvcc.tar.xz -C ~/.flashattn/nvidia/nvcc
+curl -fL -o /tmp/ptxas.tar.xz \
+  https://developer.download.nvidia.com/compute/cuda/redist/cuda_nvcc/linux-x86_64/cuda_nvcc-linux-x86_64-12.8.93-archive.tar.xz
+tar -xf /tmp/ptxas.tar.xz -C ~/.flashattn/nvidia/ptxas
+```
+
+Then allocate a GPU node and build:
 
 ```bash
 apptainer run --nv --app build_fa3 CuteDSL2.sif
