@@ -14,7 +14,7 @@ git submodule update --init --recursive
 `requirements.txt` is installed into the image at build time, so the `.sif` is self-contained. The build needs internet access.
 
 ```bash
-apptainer build --fakeroot CuteDSL2.sif apptainer.def
+apptainer build --fakeroot kernel_bench_apptainer.sif apptainer.def
 ```
 
 ## Build FA3
@@ -22,7 +22,7 @@ apptainer build --fakeroot CuteDSL2.sif apptainer.def
 FA3 compiles CUDA from source, so it is a separate step and needs a machine with a GPU.
 
 ```bash
-apptainer run --nv --app build_fa3 CuteDSL2.sif
+apptainer run --nv --app build_fa3 kernel_bench_apptainer.sif
 ```
 
 Optionally pass `MAX_JOBS=8` to parallelize the compile.
@@ -41,32 +41,30 @@ sbatch --export=ALL,SCRIPT=run_scripts/profile.sh,OUTPUT=out.csv slurm_profile.s
 module load apptainer
 ```
 
-**Cache variables**
+**Slurm Setup**
+
+To set up the environment variables for apptainer and download dependencies for FA3 build:
 
 ```bash
-cat >> ~/.bashrc <<'EOF'
-
-# kernel-benchmarking apptainer config
-export CONTAINER=CuteDSL2.sif
-export APPTAINER_CACHEDIR=$SCRATCH/.apptainer/cache
-export APPTAINER_TMPDIR=${SLURM_TMPDIR:-$SCRATCH/apptainer_tmp}
-EOF
-source ~/.bashrc
-mkdir -p "$APPTAINER_CACHEDIR" "$SCRATCH/apptainer_tmp" "$SCRATCH/flashinfer_cache"
+./slurm_setup.sh
 ```
+
+**Build the apptainer**
+
+Same as in the regular instructions. Prepend with `env -u APPTAINER_BINDPATH` to unset the environment variable if it has been set before.
 
 **Build FA3**
 
-Build the container, then allocate a GPU node for `build_fa3`:
+Allocate a GPU node and build:
 
 ```bash
 salloc --gres=gpu:h100:1 --cpus-per-task=8 --mem=32G --time=03:00:00
-apptainer run --nv --app build_fa3 CuteDSL2.sif
+apptainer run --nv --app build_fa3 kernel_bench_apptainer.sif
 ```
 
 **Run scripts**
 
-After the build add `export APPTAINER_BINDPATH=$SCRATCH/flashinfer_cache:$HOME/.cache/flashinfer` to the ~/.bashrc to avoid flashinfer cache exceeding the home disk quota. The apptainer inherits this from the host via sbatch --export=ALL.
+After the apptainer build add `export APPTAINER_BINDPATH=$SCRATCH/flashinfer_cache:$HOME/.cache/flashinfer` to the ~/.bashrc to avoid flashinfer cache exceeding the home disk quota. The apptainer inherits this from the host via sbatch --export=ALL.
 
 And create the folder `mkdir -p $SCRATCH/flashinfer_cache`.
 
@@ -75,7 +73,7 @@ Then run `sbatch --export=ALL",SCRIPT="run_scripts/profile.sh",OUTPUT="out.csv" 
 **Clean rebuild** to free disk quota:
 
 ```bash
-rm -f CuteDSL2.sif
+rm -f kernel_bench_apptainer.sif
 rm -rf .venv
 rm -rf $SCRATCH/.apptainer/cache $SCRATCH/apptainer_tmp/* $SCRATCH/flashinfer_cache/*
 ```
