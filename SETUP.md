@@ -68,7 +68,7 @@ After the apptainer build add `export APPTAINER_BINDPATH=$SCRATCH/flashinfer_cac
 
 And create the folder `mkdir -p $SCRATCH/flashinfer_cache`.
 
-Then run `sbatch --export=ALL",SCRIPT="run_scripts/profile.sh",OUTPUT="out.csv" slurm_profile.sh`
+Then run `sbatch --export=ALL,SCRIPT="run_scripts/profile.sh",OUTPUT="out.csv" slurm_profile.sh`
 
 **Clean rebuild** to free disk quota:
 
