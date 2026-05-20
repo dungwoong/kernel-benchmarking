@@ -2,7 +2,32 @@ Bootstrap: docker
 From: pytorch/pytorch:2.8.0-cuda12.9-cudnn9-devel
 
 %files
-    requirements.txt /opt
+    requirements.txt /opt/requirements.txt
 
 %post
-    pip install -r /opt/requirements.txt
+    set -e
+    apt-get update
+    # git for build_fa3 submodule, ca-certificates for pip wheel downloads
+    apt-get install -y --no-install-recommends git ca-certificates
+    pip install --no-cache-dir -r /opt/requirements.txt
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+%apprun build_fa3
+    set -eu
+    unset REQUESTS_CA_BUNDLE CURL_CA_BUNDLE SSL_CERT_FILE PIP_CERT
+    export CUDA_HOME=/usr/local/cuda
+    export TORCH_CUDA_ARCH_LIST="9.0"
+    # skip prebuilt-wheel download, compute nodes have no internet
+    export FLASH_ATTENTION_FORCE_BUILD=TRUE
+
+    # the .sif is read-only, install FA3 into a host-side venv
+    # --system-site-packages reuses the image's torch and requirements
+    if [ ! -d .venv ]; then
+        python -m venv --system-site-packages .venv
+    fi
+    if .venv/bin/python -c "import flash_attn_interface" 2>/dev/null; then
+        echo "FA3 already installed, skipping"
+        exit 0
+    fi
+    MAX_JOBS=${MAX_JOBS:-4} .venv/bin/pip install --no-build-isolation ./third_party/flash_attention/hopper
