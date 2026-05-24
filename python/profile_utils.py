@@ -222,13 +222,13 @@ def get_normal_bernoulli(shape, p=0.001, dtype=torch.bfloat16, device="cuda", nc
     large_noise = torch.randn(shape, dtype=dtype, device=gen_device) * 10
     mask = torch.bernoulli(torch.full(shape, p, dtype=torch.bfloat16, device=gen_device))
 
-    return (base_noise + (large_noise * mask)).to(device)
+    return (base_noise + (large_noise * mask)).detach().to(device)
 
 def get_kaiming(shape, gain=2, dtype=torch.bfloat16, device="cuda", ncu=False):
     # weights, k dim(shape[1]) is fan in
     gen_device = "cpu" if ncu else device
     multiplier = gain / math.sqrt(shape[1])
-    return torch.randn(shape, dtype=dtype, device=gen_device).mul(multiplier).to(device)
+    return torch.randn(shape, dtype=dtype, device=gen_device).mul(multiplier).detach().to(device)
 
 
 class ProfilingTensor:
