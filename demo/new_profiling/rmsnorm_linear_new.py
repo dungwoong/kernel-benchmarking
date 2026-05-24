@@ -80,7 +80,7 @@ if __name__ == "__main__":
     )
 
     p = ProfilingJob(
-        "gemm",
+        "rmsnorm_lin",
         kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, 'trt': trt_runner, 'max': torch_gemm},
         args=prob_args,
         arg_mask={"torch": (0, 1, 3), "cutedsl": (0, 1, 3), "tensorrt": (0, 1), 'max': (0, 1)},

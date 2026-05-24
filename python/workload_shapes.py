@@ -36,3 +36,12 @@ SWIGLU_NT = KernelArgs(
     ProfilingTensor(('n', 'k')),
     EmptyTensor(('m', 'n')),
     configs=GEMM_SHAPES)
+
+LORA_NT_16 = KernelArgs(
+    ProfilingTensor(('m', 'k')), # X
+    ProfilingTensor(('n', 'k')), # W
+    ProfilingTensor((16, 'k')), # A
+    ProfilingTensor(('n', 16)), # B
+    EmptyTensor(('m', 'n')),
+    configs=GEMM_SHAPES
+)

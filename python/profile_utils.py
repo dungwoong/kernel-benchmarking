@@ -334,10 +334,10 @@ class KernelArgs:
     
     def _get(self, getter, mask=None):
         # always return list so you can spread into args
-        return [
+        return tuple(
             getter(a) if isinstance(a, ProfilingTensor) else a 
             for idx, a in enumerate(self.args) 
-            if (mask is None or idx in mask)]
+            if (mask is None or idx in mask))
     
     def arg(self, *names):
         if len(names) == 1:
