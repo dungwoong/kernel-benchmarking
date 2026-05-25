@@ -70,7 +70,6 @@ if __name__ == "__main__":
     
     # NOTE TRT initializes eps in the object
     m, n, k = prob_args.arg('m', 'n', 'k')
-    print(f'{m=}, {n=}, {k=}')
     trt_runner = build_trt_runner(
         module=RMSNormLinearModule(eps=EPS),
         example_inputs=prob_args.tensors((0, 1)),

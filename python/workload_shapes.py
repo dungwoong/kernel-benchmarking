@@ -13,7 +13,6 @@ GEMM_SHAPES = [
     {'m': 4096, 'n': 1024, 'k': 8192}, # meta-llama/Meta-Llama-3.1-70B k_proj
     {'m': 4096, 'n': 1536, 'k': 7168}, # deepseek-ai/DeepSeek-V3 q a proj
     {'m': 4096, 'n': 1024, 'k': 16384}, # meta-llama/Meta-Llama-3.1-405B kv proj
-
 ]
 
 # https://docs.nvidia.com/cutlass/latest/media/docs/cpp/cute/0x_gemm_tutorial.html

@@ -378,7 +378,6 @@ class ProfilingJob:
     
     def _run(self):
         for k in self.kernels:
-            print(f'running {k}')
             self.outputs[k].run(self.kernels[k], self.args[k], self.ref)
             time.sleep(2)
         baseline_time = self.outputs[self.baseline].ms_median
