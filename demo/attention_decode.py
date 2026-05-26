@@ -1,9 +1,9 @@
 import math
+import time
 import torch
 import flashinfer
 import flash_attn
 import flash_attn_interface
-
 from profile_utils import ExperimentOutput, get_normal_bernoulli, get_attention_args
 
 torch.manual_seed(18)
@@ -56,12 +56,14 @@ class FA2Baseline(AttentionBaseline):
 
 
 class FA2FlashDecodeBaseline(AttentionBaseline):
+    # DO NOT use other arguments. 
+    # Use the bare minimum arguments to get vanilla attention
     def __call__(self, q):
         return flash_attn.flash_attn_with_kvcache(
             q=q,
             k_cache=self.cache_K.unsqueeze(0),
             v_cache=self.cache_V.unsqueeze(0),
-            cache_seqlens=self.cache_K.shape[0],
+            # cache_seqlens=self.cache_K.shape[0],
             causal=CAUSAL,
         )
 
@@ -79,7 +81,7 @@ class FA3FlashDecodeBaseline(AttentionBaseline):
             q=q,
             k_cache=self.cache_K.unsqueeze(0),
             v_cache=self.cache_V.unsqueeze(0),
-            cache_seqlens=self.cache_K.shape[0],
+            # cache_seqlens=self.cache_K.shape[0],
             causal=CAUSAL,
         )
 
@@ -149,6 +151,7 @@ if __name__ == "__main__":
         out = ExperimentOutput(name, q_len, kv_len, nheads)
         out.run(baseline, tensors, ref)
         outputs.append(out)
+        time.sleep(2)
 
     if args.to_csv:
         for out in outputs:
