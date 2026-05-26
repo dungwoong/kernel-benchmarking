@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from baselines.rmsnorm_swiglu import swiglu_concat
+from baselines.rmsnorm_swiglu import swiglu_concat, swiglu_separate
 
 
 def _rmsnorm(x: torch.Tensor, eps: float) -> torch.Tensor:
@@ -24,3 +24,7 @@ class RMSNormLinearModule(nn.Module):
 class SwigluConcatModule(nn.Module):
     def forward(self, a: torch.Tensor, bb1: torch.Tensor) -> torch.Tensor:
         return swiglu_concat(a, bb1)
+
+class SwigluSeparateModule(nn.Module):
+    def forward(self, a: torch.Tensor, b: torch.Tensor, b1: torch.Tensor) -> torch.Tensor:
+        return swiglu_separate(a, b, b1)

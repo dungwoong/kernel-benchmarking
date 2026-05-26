@@ -30,6 +30,7 @@ class ExperimentOutput:
     max_abs: float=None
     max_rel: float=None
     rmse: float=None
+    baseline_speedup: float=None
     metadata: str=None
 
     @classmethod
@@ -333,10 +334,18 @@ class KernelArgs:
     
     def _get(self, getter, mask=None):
         # always return list so you can spread into args
-        return [
+        return tuple(
             getter(a) if isinstance(a, ProfilingTensor) else a 
             for idx, a in enumerate(self.args) 
-            if (mask is None or idx in mask)]
+            if (mask is None or idx in mask))
+    
+    def arg(self, *names):
+        if len(names) == 1:
+            return self._arg(names[0])
+        return tuple(self._arg(n) for n in names)
+
+    def _arg(self, name):
+        return self._configs[self._populated_idx].get(name, None)
     
     def tensors_64(self, mask=None):
         return self._get(lambda x: x.tensor_64, mask=mask)
@@ -369,9 +378,11 @@ class ProfilingJob:
     
     def _run(self):
         for k in self.kernels:
-            print(f'running {k}')
             self.outputs[k].run(self.kernels[k], self.args[k], self.ref)
             time.sleep(2)
+        baseline_time = self.outputs[self.baseline].ms_median
+        for k in self.kernels:
+            self.outputs[k].baseline_speedup = (baseline_time / self.outputs[k].ms_median)
     
     def _run_ncu(self):
         for k in self.kernels:
