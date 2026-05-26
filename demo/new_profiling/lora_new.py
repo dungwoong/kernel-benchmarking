@@ -6,9 +6,7 @@ from profile_utils import ProfilingJob, get_profiling_job_args
 from cdsl_fn_utils import compile_cutedsl
 
 """
-Profiles torch gemm vs cutedsl gemm
-
-Uses new profiling setup
+LoRA, uses lora_dim=16
 """
 torch.manual_seed(18)
 
