@@ -4,8 +4,6 @@ import torch
 import flashinfer
 import flash_attn
 import flash_attn_interface
-from cutedsl_kernels import DAttn2 as Attn, DAttnSplit1 as AttnSplit, AttnReduce1 as AttnReduce
-
 from profile_utils import ExperimentOutput, get_normal_bernoulli, get_attention_args
 
 torch.manual_seed(18)
@@ -13,22 +11,6 @@ torch.manual_seed(18)
 BATCH = 1
 HEAD_DIM = 128
 CAUSAL = False
-
-CUTE_DSL_NSPLITS=4
-split_kernel = AttnSplit(
-    qk_mnk=(16, 128, 128),
-    stages=2,
-    p_stages=1,
-    k_splits=CUTE_DSL_NSPLITS,
-    )
-reduce_kernel = AttnReduce(n=128, splits=CUTE_DSL_NSPLITS)
-
-full_kernel = Attn(
-    qk_mnk=(16, 128, 128),
-    stages=2,
-    p_stages=1,
-    is_persistent=False,
-    )
 
 
 def naive_attention(q, k_cache, v_cache):
@@ -152,11 +134,11 @@ if __name__ == "__main__":
 
     pairs = []
     for name, cls in [
-        # ("attn_torch_sdpa",      TorchSDPABaseline),
-        # ("attn_flashinfer",      FlashInferBaseline),
-        # ("attn_fa2",             FA2Baseline),
+        ("attn_torch_sdpa",      TorchSDPABaseline),
+        ("attn_flashinfer",      FlashInferBaseline),
+        ("attn_fa2",             FA2Baseline),
         ("attn_fa2_flashdecode", FA2FlashDecodeBaseline),
-        # ("attn_fa3",             FA3Baseline),
+        ("attn_fa3",             FA3Baseline),
         ("attn_fa3_flashdecode", FA3FlashDecodeBaseline),
     ]:
         cK, cV = make_cache()
