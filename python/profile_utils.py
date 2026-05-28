@@ -151,21 +151,13 @@ def cuda_timings(func, warmup=10, bench=50):
 
 def do_bench_mod(fn, warmup=25, rep=100, min_reps=20, stream=None):
     """
-    Benchmark the runtime of the provided function. By default, return the median runtime of :code:`fn` along with
-    the 20-th and 80-th performance percentile.
-
-    :param fn: Function to benchmark
-    :type fn: Callable
-    :param warmup: Warmup time (in ms)
-    :type warmup: int
-    :param rep: Repetition time (in ms)
-    :type rep: int
-    :param grad_to_none: Reset the gradient of the provided tensor to None
-    :type grad_to_none: torch.tensor, optional
-    :param quantiles: Performance percentile to return in addition to the median.
-    :type quantiles: list[float], optional
-    :param return_mode: The statistical measure to return. Options are "min", "max", "mean", "median", or "all". Default is "mean".
-    :type return_mode: str
+    Copies triton do_bench, but only returns all timings, has a minimum reps parameter, and enables non-default stream
+    
+    fn: function to benchmark
+    warmup: warmup ms
+    rep: benchmarking ms
+    min_reps: minimum repetitions for benchmarking
+    stream: stream
     """
     if stream is None:
         stream = torch.cuda.current_stream()
