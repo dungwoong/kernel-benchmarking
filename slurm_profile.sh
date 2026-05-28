@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --gres=gpu:h100:1
-#SBATCH --mem=8G
+#SBATCH --mem=24G
 #SBATCH --time=00:30:00
 #SBATCH --export=ALL,DISABLE_DCGM=1
 #SBATCH --job-name=KernelsProfile
