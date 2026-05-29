@@ -55,46 +55,45 @@ def _export_onnx(module: torch.nn.Module,
     return buf.getvalue()
 
 
-# OLD BUILD TRT RUNNER, uses default stream, getting a warning
-# def build_trt_runner(
-#     module: torch.nn.Module,
-#     example_inputs: tuple,
-#     output_shape: tuple,
-#     cache_key: str,
-#     input_names: list,
-#     output_name: str = "output",
-#     output_dtype: torch.dtype = torch.bfloat16,
-# ) -> Callable:
-#     # Cache by (workload, shape, dtype): Trinity rebuilds per process
-#     # Cache key does not hash module source: rm .cache/tensorrt/ after editing a module
-#     engine_path = ENGINE_CACHE_DIR / f"{cache_key}.engine"
+def build_trt_runner_default_stream(
+    module: torch.nn.Module,
+    example_inputs: tuple,
+    output_shape: tuple,
+    cache_key: str,
+    input_names: list,
+    output_name: str = "output",
+    output_dtype: torch.dtype = torch.bfloat16,
+) -> Callable:
+    # Cache by (workload, shape, dtype): Trinity rebuilds per process
+    # Cache key does not hash module source: rm .cache/tensorrt/ after editing a module
+    engine_path = ENGINE_CACHE_DIR / f"{cache_key}.engine"
 
-#     if engine_path.exists():
-#         engine_bytes = engine_path.read_bytes()
-#     else:
-#         onnx_bytes = _export_onnx(module, example_inputs, input_names, output_name)
-#         (ENGINE_CACHE_DIR / f"{cache_key}.onnx").write_bytes(onnx_bytes)
-#         engine_bytes = _build_engine(onnx_bytes)
-#         engine_path.write_bytes(engine_bytes)
+    if engine_path.exists():
+        engine_bytes = engine_path.read_bytes()
+    else:
+        onnx_bytes = _export_onnx(module, example_inputs, input_names, output_name)
+        (ENGINE_CACHE_DIR / f"{cache_key}.onnx").write_bytes(onnx_bytes)
+        engine_bytes = _build_engine(onnx_bytes)
+        engine_path.write_bytes(engine_bytes)
 
-#     engine = _RUNTIME.deserialize_cuda_engine(engine_bytes)
-#     context = engine.create_execution_context()
-#     output = torch.empty(output_shape, dtype=output_dtype, device="cuda")
+    engine = _RUNTIME.deserialize_cuda_engine(engine_bytes)
+    context = engine.create_execution_context()
+    output = torch.empty(output_shape, dtype=output_dtype, device="cuda")
 
-#     _refs = (engine, context, output)  # keep alive across closure use
+    _refs = (engine, context, output)  # keep alive across closure use
 
-#     def run(*tensors: torch.Tensor) -> torch.Tensor:
-#         for name, t in zip(input_names, tensors):
-#             context.set_tensor_address(name, t.data_ptr())
-#         context.set_tensor_address(output_name, output.data_ptr())
-#         # execute_async_v3 (vs Trinity's execute_v2): name-based bindings, explicit stream
-#         context.execute_async_v3(
-#             stream_handle=torch.cuda.current_stream().cuda_stream
-#         )
-#         return output
+    def run(*tensors: torch.Tensor) -> torch.Tensor:
+        for name, t in zip(input_names, tensors):
+            context.set_tensor_address(name, t.data_ptr())
+        context.set_tensor_address(output_name, output.data_ptr())
+        # execute_async_v3 (vs Trinity's execute_v2): name-based bindings, explicit stream
+        context.execute_async_v3(
+            stream_handle=torch.cuda.current_stream().cuda_stream
+        )
+        return output
 
-#     run._trt_refs = _refs
-#     return run
+    run._trt_refs = _refs
+    return run
 
 
 def build_trt_runner(
@@ -126,7 +125,7 @@ def build_trt_runner(
 
     _refs = (engine, context, output, stream)  # keep alive across closure use
 
-    # EXPECTS with torch.cuda.stream(stream):
+    # Run function must be called with `torch.cuda.stream(run._stream):`
     def run(*tensors: torch.Tensor) -> torch.Tensor:
         for name, t in zip(input_names, tensors):
             context.set_tensor_address(name, t.data_ptr())
