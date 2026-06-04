@@ -47,16 +47,20 @@ class ExperimentOutput:
         """
         Make sure tensors are detached if necessary.
         Max abs/rel aren't that useful since the scale of the tensors influences it heavily
+        stream=None will use default stream, see <do_bench_mod>
         """
-        o = kernel(*tensors)
-        o_casted = o.to(ref_output.dtype)
+        stream = getattr(kernel, '_stream', torch.cuda.current_stream())
+        with torch.cuda.stream(stream):        
+            o = kernel(*tensors)
+            o_casted = o.to(ref_output.dtype)
 
-        self.rmse = get_rmse(ref_output, o_casted)
-        self.max_abs, self.max_rel = get_max_errors(o_casted, ref_output)
-        timings = do_bench(lambda: kernel(*tensors), return_mode='all')
-        self.ms_median = np.median(timings).item()
-        self.ms_mean = np.mean(timings).item()
-        self.ms_std = np.std(timings).item()
+            self.rmse = get_rmse(ref_output, o_casted)
+            self.max_abs, self.max_rel = get_max_errors(o_casted, ref_output)
+
+            timings = do_bench_mod(lambda: kernel(*tensors), stream=stream)
+            self.ms_median = np.median(timings).item()
+            self.ms_mean = np.mean(timings).item()
+            self.ms_std = np.std(timings).item()
     
     def run_ncu(self, kernel, tensors):
         kernel(*tensors)
@@ -66,64 +70,7 @@ class ExperimentOutput:
         return ','.join(str(x) for x in lst)
 
 
-@dataclass
-class TimingComparisonOutput:
-    """
-    Compare multiple methods for timing on the same workload
-    """
-    label: str
-    m: int
-    n: int
-    k: int
-    ms_median: float=None
-    ms_mean: float=None
-    ms_std: float=None
-    ms_median_2: float=None
-    ms_mean_2: float=None
-    ms_std_2: float=None
-    max_abs: float=None
-    max_rel: float=None
-    rmse: float=None
-    metadata: str=None
-
-    @classmethod
-    def header(cls) -> tuple:
-        return tuple(f.name for f in fields(cls))
-    
-    def values(self):
-        return tuple(getattr(self, f.name) for f in fields(self))
-    
-    def items(self):
-        return {f.name: getattr(self, f.name) for f in fields(self)}
-
-    def run(self, kernel, tensors, ref_output: torch.Tensor):
-        """
-        Make sure tensors are detached if necessary.
-        Max abs/rel aren't that useful since the scale of the tensors influences it heavily
-        """
-        o = kernel(*tensors)
-        o_casted = o.to(ref_output.dtype)
-
-        self.rmse = get_rmse(ref_output, o_casted)
-        self.max_abs, self.max_rel = get_max_errors(o_casted, ref_output)
-
-        timings = do_bench(lambda: kernel(*tensors), return_mode='all')
-        time.sleep(2)
-        timings2 = cuda_timings_tritonbench(lambda: kernel(*tensors))
-        self.ms_median = np.median(timings).item()
-        self.ms_mean = np.mean(timings).item()
-        self.ms_std = np.std(timings).item()
-        self.ms_median_2 = np.median(timings2).item()
-        self.ms_mean_2 = np.mean(timings2).item()
-        self.ms_std_2 = np.std(timings2).item()
-    
-    def run_ncu(self, kernel, tensors):
-        kernel(*tensors)
-
-    @staticmethod
-    def list_to_csv(lst):
-        return ','.join(str(x) for x in lst)
-
+# PROFILING METHODS
 def cuda_timings(func, warmup=10, bench=50):
     with torch.no_grad():
         for _ in range(warmup):
@@ -144,27 +91,60 @@ def cuda_timings(func, warmup=10, bench=50):
         
     return timings
 
-def cuda_timings_tritonbench(func, warmup=10, bench=50):
-    di = runtime.driver.active.get_device_interface()
-    cache = runtime.driver.active.get_empty_cache_for_benchmark()
-    with torch.no_grad():
-        for _ in range(warmup):
-            func()
-        
-        start_events = [di.Event(enable_timing=True) for _ in range(bench)]
-        end_events = [di.Event(enable_timing=True) for _ in range(bench)]
-        
-        for i in range(bench):
-            runtime.driver.active.clear_cache(cache)
-            start_events[i].record()
-            func()
-            end_events[i].record()
 
-        di.synchronize()
-        
-        timings = [s.elapsed_time(e) for s, e in zip(start_events, end_events)]
-        
-    return timings
+def do_bench_mod(fn, warmup=25, rep=100, min_reps=20, stream=None):
+    """
+    Copies triton do_bench, but only returns all timings, has a minimum reps parameter, and enables non-default stream
+    
+    fn: function to benchmark
+    warmup: warmup ms
+    rep: benchmarking ms
+    min_reps: minimum repetitions for benchmarking
+    stream: stream
+    """
+    if stream is None:
+        stream = torch.cuda.current_stream()
+
+    di = runtime.driver.active.get_device_interface()
+
+    fn()
+    di.synchronize()
+
+    cache = runtime.driver.active.get_empty_cache_for_benchmark()
+
+    # Estimate the runtime of the function
+    start_event = di.Event(enable_timing=True)
+    end_event = di.Event(enable_timing=True)
+    start_event.record(stream=stream)
+    for _ in range(5):
+        runtime.driver.active.clear_cache(cache)
+        fn()
+    end_event.record(stream=stream)
+    di.synchronize()
+    estimate_ms = start_event.elapsed_time(end_event) / 5
+
+    # compute number of warmup and repeat
+    # hardcode minimum warmup reps
+    n_warmup = max(10, int(warmup / estimate_ms))
+    n_repeat = max(min_reps, int(rep / estimate_ms))
+    start_event = [di.Event(enable_timing=True) for i in range(n_repeat)]
+    end_event = [di.Event(enable_timing=True) for i in range(n_repeat)]
+    # Warm-up
+    for _ in range(n_warmup):
+        fn()
+    # Benchmark
+    for i in range(n_repeat):
+        # we clear the L2 cache before each run
+        runtime.driver.active.clear_cache(cache)
+        # record time of `fn`
+        start_event[i].record(stream=stream)
+        fn()
+        end_event[i].record(stream=stream)
+    # Record clocks
+    di.synchronize()
+    times = [s.elapsed_time(e) for s, e in zip(start_event, end_event)]
+    return times
+
 
 def get_rmse(ref: torch.Tensor, o: torch.Tensor):
     assert o.dtype == ref.dtype

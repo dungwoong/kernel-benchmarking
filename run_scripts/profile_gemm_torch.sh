@@ -2,7 +2,7 @@
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. & pwd)"
 
-python3 $DIR/demo/gen_header.py TimingComparisonOutput
+python3 $DIR/demo/gen_header.py ExperimentOutput
 
 while read -r m n k; do
     python3 $DIR/demo/gemm_torch_cublas.py "$m" "$n" "$k" --to_csv
