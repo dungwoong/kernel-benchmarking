@@ -77,3 +77,11 @@ rm -f kernel_bench_apptainer.sif
 rm -rf .venv
 rm -rf $SCRATCH/.apptainer/cache $SCRATCH/apptainer_tmp/* $SCRATCH/flashinfer_cache/*
 ```
+
+## Install Additional Libraries
+This will install packages into a virtual environment. We have some lightweight packages that may update periodically, which are useful to install outside of the .sif build process.
+
+Run this from the root of the folder.
+```
+apptainer exec <CONTAINER_PATH> bash -c 'source ./add_path.sh && pip install -r venv_requirements.txt'
+```

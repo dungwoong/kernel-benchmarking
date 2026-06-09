@@ -13,14 +13,6 @@ From: pytorch/pytorch:2.8.0-cuda12.9-cudnn9-devel
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 
-%apprun install_additional_libs
-    set -eu
-    unset REQUESTS_CA_BUNDLE CURL_CA_BUNDLE SSL_CERT_FILE PIP_CERT
-    if [ ! -d .venv ]; then
-        python -m venv --system-site-packages .venv
-    fi
-    .venv/bin/pip install helion
-
 %apprun build_fa3
     set -eu
     unset REQUESTS_CA_BUNDLE CURL_CA_BUNDLE SSL_CERT_FILE PIP_CERT
