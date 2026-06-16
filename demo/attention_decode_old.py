@@ -2,6 +2,7 @@ import math
 import time
 import torch
 import flashinfer
+import flash_attn
 import flash_attn_interface
 from profile_utils import ExperimentOutput, get_normal_bernoulli, get_attention_args
 from cutedsl_kernels import DAttn2, DAttnSplit1, AttnReduce1
@@ -46,6 +47,27 @@ class FlashInferBaseline(AttentionBaseline):
             causal=CAUSAL,
         )
         return out.unsqueeze(0)
+
+
+class FA2Baseline(AttentionBaseline):
+    def __call__(self, q):
+        # FA expects (B, S, H, D), unsqueeze the cache as a view
+        full_K = self.cache_K.unsqueeze(0)
+        full_V = self.cache_V.unsqueeze(0)
+        return flash_attn.flash_attn_func(q, full_K, full_V, causal=CAUSAL)
+
+
+class FA2FlashDecodeBaseline(AttentionBaseline):
+    # DO NOT use other arguments. 
+    # Use the bare minimum arguments to get vanilla attention
+    def __call__(self, q):
+        return flash_attn.flash_attn_with_kvcache(
+            q=q,
+            k_cache=self.cache_K.unsqueeze(0),
+            v_cache=self.cache_V.unsqueeze(0),
+            # cache_seqlens=self.cache_K.shape[0],
+            causal=CAUSAL,
+        )
 
 
 class FA3Baseline(AttentionBaseline):
@@ -173,6 +195,8 @@ if __name__ == "__main__":
     for name, cls in [
         ("attn_torch_sdpa",      TorchSDPABaseline),
         ("attn_flashinfer",      FlashInferBaseline),
+        ("attn_fa2",             FA2Baseline),
+        ("attn_fa2_flashdecode", FA2FlashDecodeBaseline),
         ("attn_fa3",             FA3Baseline),
         ("attn_fa3_flashdecode", FA3FlashDecodeBaseline),
         ("attn_cdsl",            CDSLAttention),
