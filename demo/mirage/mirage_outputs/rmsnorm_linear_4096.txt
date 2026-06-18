@@ -1,0 +1,58 @@
+Mirage::DeviceMemoryManager: gpu_id(0) num_gpus(1)========== Search Configuration ==========
+  max num threadblock graph op: 9
+  max num kernel_graph op: 5
+  max num threadblock graphs: 1
+  max num threadblock graph inputs: 3
+  max num threadblock graph outputs: 2
+  search_thread: 8
+  imaps to explore:
+  imap combs to explore:
+  omaps to explore:
+  grid dims to explore:
+  block dims to explore:
+  fmaps to explore:
+  franges to explore:4 32 64 
+num_thread = 8
+num_tasks = 68205 tasks, Random tests: 831, Valid mugraphs: 0, Time: 1268.414737
+
+[Search] Second step finished. Time elapsed: 1268.431049sec
+[Search] Total states explored: 510054
+[Search] Random tests performed: 831
+[Serach] Valid kernel graphs explored: 0
+Finished search, discovering 0 mugraphs ...
+Transpiling 0 muGraphs ...
+
+-----
+
+(.venv) Apptainer> python3 demo/mirage/rmsnorm_linear.py --warmup 10 --profile 100
+Mirage::DeviceMemoryManager: gpu_id(0) num_gpus(1)========== Search Configuration ==========
+  max num threadblock graph op: 9
+  max num kernel_graph op: 5
+  max num threadblock graphs: 1
+  max num threadblock graph inputs: 3
+  max num threadblock graph outputs: 2
+  search_thread: 8
+  imaps to explore:
+  imap combs to explore:
+  omaps to explore:
+  grid dims to explore:
+  block dims to explore:
+  fmaps to explore:
+  franges to explore:4 32 64 
+num_thread = 8
+num_tasks = 68205 tasks, Random tests: 831, Valid mugraphs: 0, Time: 1408.180526
+
+[Search] Second step finished. Time elapsed: 1408.391202sec
+[Search] Total states explored: 510054
+[Search] Random tests performed: 831
+[Serach] Valid kernel graphs explored: 0
+Finished search, discovering 0 mugraphs ...
+Transpiling 0 muGraphs ...
+Traceback (most recent call last):
+  File "/home/wangke61/kernel-benchmarking/demo/mirage/rmsnorm_linear.py", line 81, in <module>
+    optimized_graph = graph.superoptimize(
+                      ^^^^^^^^^^^^^^^^^^^^
+  File "/home/wangke61/kernel-benchmarking/.venv/lib/python3.11/site-packages/mirage/kernel.py", line 684, in superoptimize
+    best_graph.backend = "cuda"
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'backend'
