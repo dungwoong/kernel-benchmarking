@@ -1,3 +1,5 @@
+python3 demo/mirage/rmsnorm_linear.py --warmup 10 --profile 100
+
 Mirage::DeviceMemoryManager: gpu_id(0) num_gpus(1)========== Search Configuration ==========
   max num threadblock graph op: 9
   max num kernel_graph op: 5
@@ -23,6 +25,7 @@ Finished search, discovering 0 mugraphs ...
 Transpiling 0 muGraphs ...
 
 -----
+python3 demo/mirage/rmsnorm.py -b 2048 --warmup 10 --profile 100
 
 (.venv) Apptainer> python3 demo/mirage/rmsnorm_linear.py --warmup 10 --profile 100
 Mirage::DeviceMemoryManager: gpu_id(0) num_gpus(1)========== Search Configuration ==========
