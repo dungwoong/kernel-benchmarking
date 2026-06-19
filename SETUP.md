@@ -22,6 +22,7 @@ apptainer build --fakeroot kernel_bench_apptainer.sif apptainer.def
 Then allocate a GPU node and build:
 
 ```bash
+apptainer run --nv --app build_mirage kernel_bench_apptainer.sif
 apptainer run --nv --app build_fa3 kernel_bench_apptainer.sif
 ```
 

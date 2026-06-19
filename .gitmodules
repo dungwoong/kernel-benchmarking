@@ -7,3 +7,7 @@
 [submodule "third_party/flash_attention"]
 	path = third_party/flash_attention
 	url = https://github.com/Dao-AILab/flash-attention.git
+[submodule "third_party/mirage"]
+	path = third_party/mirage
+	url = https://github.com/mirage-project/mirage.git
+	branch = main-to-evaluation

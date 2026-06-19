@@ -9,9 +9,21 @@ From: pytorch/pytorch:2.8.0-cuda12.9-cudnn9-devel
     apt-get update
     # git for build_fa3 submodule, ca-certificates for pip wheel downloads
     apt-get install -y --no-install-recommends git ca-certificates
+    apt-get update && apt-get install -y libcudnn9-dev-cuda-12 libcudnn9-cuda-12
     pip install --no-cache-dir -r /opt/requirements.txt
     apt-get clean
     rm -rf /var/lib/apt/lists/*
+
+%apprun build_mirage
+    set -eu
+    if [ ! -d .venv ]; then
+        python -m venv --system-site-packages .venv
+    fi
+    if .venv/bin/python -c "import mirage" 2>/dev/null; then
+        echo "mirage already installed, skipping"
+        exit 0
+    fi
+    .venv/bin/pip install --no-build-isolation ./third_party/mirage
 
 %apprun build_fa3
     set -eu

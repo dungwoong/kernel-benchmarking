@@ -1,0 +1,69 @@
+python3 demo/mirage/matmul_epi.py --warmup 10 --profile 100
+Gemm shapes are mnk=(4096, 4096, 4096)
+Mirage::DeviceMemoryManager: gpu_id(0) num_gpus(1)========== Search Configuration ==========
+  max num threadblock graph op: 9
+  max num kernel_graph op: 5
+  max num threadblock graphs: 1
+  max num threadblock graph inputs: 3
+  max num threadblock graph outputs: 2
+  search_thread: 8
+  imaps to explore:
+  imap combs to explore:
+  omaps to explore:
+  grid dims to explore:
+  block dims to explore:
+  fmaps to explore:
+  franges to explore:4 32 64 
+num_thread = 8
+num_tasks = 60888 tasks, Random tests: 564, Valid mugraphs: 1, Time: 809.929526
+
+[Search] Second step finished. Time elapsed: 809.933771sec
+[Search] Total states explored: 386711
+[Search] Random tests performed: 564
+[Serach] Valid kernel graphs explored: 1
+Finished search, discovering 1 mugraphs ...
+Transpiling 1 muGraphs ...
+muGraph 0: profiled performance (ms) = 0.22910816192626954
+
+Best muGraph run time (ms):  0.23634977379570837
+Torch compile runtime (ms):  0.20457610816268598
+0.8655650685729603
+
+# THE ONE MUGRAPH THEY DISCOVERED
+
+#define NUM_GPUS 1
+#define USE_NVSHMEM false
+#define MIRAGE_GRACE_HOPPER
+#include "runtime.h"
+using namespace cute;
+
+
+static void _init() {
+}
+
+
+static void _execute_mugraph(std::vector<void const *> input_tensors, std::vector<void*> output_tensors, void* buf, cudaStream_t stream, void * profiler_buffer){
+  {
+    // OP type: kn_input_op
+  }
+  {
+    // OP type: kn_input_op
+  }
+  {
+    // OP type: kn_matmul_op
+    half_t *dtensor10224949 = (half_t*)input_tensors.at(0);
+    half_t *dtensor10224950 = (half_t*)input_tensors.at(1);
+    half_t *dtensor10224951 = (half_t*)((char*)buf + 0);
+    kn::gemm<CUBLAS_COMPUTE_16F>(dtensor10224951,dtensor10224949,dtensor10224950, 4096,4096,4096, 4096,1, 4096,1, 4096,1, 1, 0,0,0);
+  }
+  {
+    // OP type: kn_relu_op
+    half_t *dtensor10224951 = (half_t*)((char*)buf + 0);
+    half_t *dtensor10224952 = (half_t*)output_tensors.at(0);
+    using kernel = kn::ElementUnaryKernel<half_t, kn::ElementUnaryOpType::RELU, Layout<Shape<Int<4096>, Int<4096>>, Stride<Int<1>, Int<4096>>>, Layout<Shape<Int<4096>, Int<4096>>, Stride<Int<1>, Int<4096>>>>;
+    kernel::run(dtensor10224952, dtensor10224951);
+  }
+  {
+    // OP type: kn_output_op
+  }
+}
