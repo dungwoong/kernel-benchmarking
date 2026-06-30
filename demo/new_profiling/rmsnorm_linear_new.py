@@ -6,7 +6,7 @@ from cdsl_fn_utils import make_fake_tensor, compile_cutedsl, STREAM
 from trt_utils import build_trt_runner
 from baselines.rmsnorm_swiglu_trt import RMSNormLinearModule
 from triton.testing import do_bench
-from triton_persistent_gemm import rmsnorm_linear_persistent
+from triton_rmsnorm_linear import rmsnorm_linear_persistent
 
 """
 RMSNorm + Linear
@@ -79,21 +79,9 @@ if __name__ == "__main__":
 
     p = ProfilingJob(
         "rmsnorm_lin",
-        kernels={
-            "cutedsl": cdsl_kernel,
-            "torch": torch_kernel,
-            "trt": trt_runner,
-            "triton_persistent": rmsnorm_linear_persistent,
-            "max": torch_gemm,
-        },
+        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, 'trt': trt_runner, "triton_persistent": rmsnorm_linear_persistent, 'max': torch_gemm},
         args=prob_args,
-        arg_mask={
-            "torch": (0, 1, 3),
-            "cutedsl": (0, 1, 3),
-            "trt": (0, 1),
-            "triton_persistent": (0, 1, 3),
-            "max": (0, 1),
-        },
+        arg_mask={"torch": (0, 1, 3), "cutedsl": (0, 1, 3), "trt": (0, 1), "triton_persistent": (0, 1, 3), 'max': (0, 1)},
         baseline="torch",
         ref="torch")
     

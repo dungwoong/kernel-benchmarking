@@ -9,7 +9,6 @@ from triton_persistent_gemm import (
     matmul_get_configs,
     _compute_pid,
     _validate_inputs,
-    _output,
 )
 
 
@@ -70,7 +69,7 @@ def rmsnorm_linear_persistent(a: torch.Tensor, b: torch.Tensor, eps: float = 1e-
     _validate_inputs(a, b)
     M, K = a.shape
     N = b.shape[0]
-    c = _output(a, b)
+    c = torch.empty((a.shape[0], b.shape[0]), dtype=a.dtype, device=a.device)
     num_sms = torch.cuda.get_device_properties(a.device).multi_processor_count
     grid = lambda META: (
         min(num_sms, triton.cdiv(M, META["BLOCK_SIZE_M"]) * triton.cdiv(N, META["BLOCK_SIZE_N"])),
