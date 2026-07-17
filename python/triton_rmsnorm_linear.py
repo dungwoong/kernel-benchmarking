@@ -1,6 +1,3 @@
-"""
-Fused RMSNorm-linear in NT layout: C = RMSNorm(A) @ B.T, with A=(M,K), B=(N,K)
-"""
 import torch
 import triton
 import triton.language as tl
@@ -42,7 +39,6 @@ def rmsnorm_linear_kernel(
         safe_offs_n = tl.max_contiguous(tl.multiple_of(offs_n % N, BLOCK_SIZE_N), BLOCK_SIZE_N)
 
         accumulator = tl.zeros((BLOCK_SIZE_M, BLOCK_SIZE_N), dtype=tl.float32)
-        # row_sumsq only depends on pid_m, so it is recomputed in every N-tile of this row
         row_sumsq = tl.zeros((BLOCK_SIZE_M,), dtype=tl.float32)
         for ki in range(0, tl.cdiv(K, BLOCK_SIZE_K)):
             offs_k = ki * BLOCK_SIZE_K + tl.arange(0, BLOCK_SIZE_K)
@@ -80,6 +76,29 @@ def rmsnorm_linear_persistent(a: torch.Tensor, b: torch.Tensor, eps: float = 1e-
         eps,
         a.stride(0), a.stride(1),
         b.stride(0), b.stride(1),
+        c.stride(0), c.stride(1),
+        NUM_SMS=num_sms,
+    )
+    return c
+
+
+def rmsnorm_linear_persistent_nn(a: torch.Tensor, b: torch.Tensor, eps: float = 1e-5):
+    # a=(M,K), b=(K,N), C = RMSNorm(a) @ b
+    assert a.ndim == 2 and b.ndim == 2 and a.is_cuda and b.is_cuda
+    assert a.shape[1] == b.shape[0], "K mismatch, b must be (K, N) for NN"
+    M, K = a.shape
+    N = b.shape[1]
+    c = torch.empty((M, N), dtype=a.dtype, device=a.device)
+    num_sms = torch.cuda.get_device_properties(a.device).multi_processor_count
+    grid = lambda META: (
+        min(num_sms, triton.cdiv(M, META["BLOCK_SIZE_M"]) * triton.cdiv(N, META["BLOCK_SIZE_N"])),
+    )
+    rmsnorm_linear_kernel[grid](
+        a, b, c,
+        M, N, K,
+        eps,
+        a.stride(0), a.stride(1),
+        b.stride(1), b.stride(0), # Swap strides here. First is stride_bn, then stride_bk
         c.stride(0), c.stride(1),
         NUM_SMS=num_sms,
     )
