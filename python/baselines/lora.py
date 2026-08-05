@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 
 def torch_lora(a: torch.Tensor, b: torch.Tensor, lA: torch.Tensor, lB: torch.Tensor):
     """
@@ -10,3 +11,7 @@ def torch_lora(a: torch.Tensor, b: torch.Tensor, lA: torch.Tensor, lB: torch.Ten
     l = lora_dim
     """
     return (a @ b.t()) + ((a @ lA.t()) @ lB.t())
+
+class LoraModule(nn.Module):
+    def forward(self, a: torch.Tensor, b: torch.Tensor, lA: torch.Tensor, lB: torch.Tensor):
+        return torch_lora(a, b, lA, lB)

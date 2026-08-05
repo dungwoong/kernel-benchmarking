@@ -1,0 +1,17 @@
+python3 demo/mirage/decoding_attn.py 
+Mirage::DeviceMemoryManager: gpu_id(0) num_gpus(1)========== Search Configuration ==========
+  max num threadblock graph op: 9
+  max num kernel_graph op: 5
+  max num threadblock graphs: 2
+  max num threadblock graph inputs: 3
+  max num threadblock graph outputs: 2
+  search_thread: 8
+  imaps to explore:
+  imap combs to explore:
+  omaps to explore:
+  grid dims to explore:
+  block dims to explore:
+  fmaps to explore:
+  franges to explore:4 32 64 
+num_thread = 8
+[Search] States: 538701, Random tests: 2606, Valid mugraphs: 0, Time: 2445.709372
