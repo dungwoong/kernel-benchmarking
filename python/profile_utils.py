@@ -148,7 +148,7 @@ def do_bench_mod(fn, warmup=25, rep=100, min_reps=20, stream=None):
 
 def get_rmse(ref: torch.Tensor, o: torch.Tensor):
     assert o.dtype == ref.dtype
-    assert o.numel() == ref.numel()
+    assert o.numel() == ref.numel(), f'{o.shape=} {ref.shape=}'
     mse = torch.nn.functional.mse_loss(o.flatten(), ref.flatten(), reduction='mean')
     rmse = mse.sqrt().item()
     return rmse

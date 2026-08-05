@@ -2,8 +2,10 @@ import torch
 
 from cutedsl_kernels import LoRASM90
 from workload_shapes import LORA_NT_16
-from profile_utils import ProfilingJob, get_profiling_job_args
+from profile_utils import ProfilingJob, get_profiling_job_args, ExperimentOutput
 from cdsl_fn_utils import compile_cutedsl
+from trt_utils import build_trt_runner
+from baselines.lora import LoraModule
 
 """
 LoRA, uses lora_dim=16
@@ -39,10 +41,19 @@ if __name__ == "__main__":
         lxa = a_ @ lA_.t()
         compiled_gemm(a_, b_, lxa, lB_, o)
         return o
+    
+    m, n, k = prob_args.arg('m', 'n', 'k')
+    trt_runner = build_trt_runner(
+        module=LoraModule(),
+        example_inputs=prob_args.tensors((0, 1, 2, 3)),
+        output_shape=(m, n),
+        cache_key=f"lora_m{m}_n{n}_k{k}_bf16",
+        input_names=["a", "b", "lA", "lB"],
+    )
 
     p = ProfilingJob(
         "lora",
-        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel},
+        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, 'trt': trt_runner},
         args=prob_args,
         arg_mask={"torch": (0, 1, 2, 3), "cutedsl": (0, 1, 2, 3)},
         baseline="torch",
