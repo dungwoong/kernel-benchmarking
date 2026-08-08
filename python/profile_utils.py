@@ -356,6 +356,12 @@ class ProfilingJob:
         self.args = {k: args.tensors(arg_mask.get(k, None)) for k in kernels}
         self.ref = self.kernels[ref](*args.tensors_64(arg_mask.get(ref, None)))
         self.outputs = {k: ExperimentOutput(f'{label}:{args._populated_idx}:{k}') for k in kernels}
+
+        m, n, k = args.arg('m', 'n', 'k')
+        self.outputs = {
+            name: ExperimentOutput(f'{label}:{args._populated_idx}:{name}', m=m, n=n, k=k)
+            for name in kernels
+        }
     
     def _run(self):
         for k in self.kernels:

@@ -4,6 +4,9 @@ from cutedsl_kernels import Gemm4SM90
 from workload_shapes import GEMM_ARGS_NT
 from profile_utils import ProfilingJob, get_profiling_job_args
 from cdsl_fn_utils import compile_cutedsl
+from triton_persistent_gemm import matmul as triton_matmul
+from triton_persistent_gemm import matmul_persistent as triton_matmul_persistent
+from helion_gemm import matmul as helion_matmul
 
 """
 Profiles torch gemm vs cutedsl gemm
@@ -42,9 +45,21 @@ if __name__ == "__main__":
 
     p = ProfilingJob(
         "gemm",
-        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel},
+        kernels={
+            "cutedsl": cdsl_kernel,
+            "torch": torch_kernel,
+            "triton": triton_matmul,
+            "triton_persistent": triton_matmul_persistent,
+            "helion": helion_matmul,
+        },
         args=prob_args,
-        arg_mask={"torch": (0, 1), "cutedsl": (0, 1)},
+        arg_mask={
+            "torch": (0, 1),
+            "cutedsl": (0, 1),
+            "triton": (0, 1),
+            "triton_persistent": (0, 1),
+            "helion": (0, 1),
+        },
         baseline="torch",
         ref="torch")
     
