@@ -70,6 +70,20 @@ class ExperimentOutput:
         return ','.join(str(x) for x in lst)
 
 
+def write_csv_rows(rows, path=None):
+    """
+    Write csv rows to <path> or to stdout when no path is given
+
+    Every config runs in its own process so each will append to csv.
+    """
+    if path is None:
+        for r in rows:
+            print(r)
+        return
+    with open(path, 'a') as f:
+        f.write(''.join(f'{r}\n' for r in rows))
+
+
 # PROFILING METHODS
 def cuda_timings(func, warmup=10, bench=50):
     with torch.no_grad():
@@ -369,16 +383,15 @@ class ProfilingJob:
         for k in self.kernels:
             self.outputs[k].run_ncu(self.kernels[k], self.args[k])
     
-    def run(self, ncu=False):
+    def run(self, ncu=False, csv=None):
         if ncu:
             self._run_ncu()
         else:
             self._run()
-        self.output_results()
-    
-    def output_results(self):
-        for k in self.outputs:
-            print(ExperimentOutput.list_to_csv(self.outputs[k].values()))
+        self.output_results(csv)
+
+    def output_results(self, csv=None):
+        write_csv_rows([ExperimentOutput.list_to_csv(self.outputs[k].values()) for k in self.outputs], csv)
 
 def get_profiling_job_args(parse=True):
     """
@@ -388,6 +401,7 @@ def get_profiling_job_args(parse=True):
     parser.add_argument("config", type=int, help="the config number")
 
     parser.add_argument("--ncu", action='store_true')
+    parser.add_argument("--csv", default=None, help="append the results to csv file instead of stdout")
     if parse:
         args = parser.parse_args()
         return args

@@ -39,7 +39,7 @@ gemm = Gemm4SM90(
 
 
 def build_c2_gemm(m, n, k):
-    """See compiler_2's demo/hel/hel_gemm_2.py."""
+    """See compiler_2's python/kernels/hel/gemm.py."""
     raster = PersistentRasterizationHelper(m, n, C2_TILE_M, C2_TILE_N).with_block(8, 8)
     builder = Builder(_p=hlN.HLProgram(raster.grid_size(), 256, raster.cluster_shape, tma_stages=3))
     gA = builder.GlobalTensor['a', DType.bfloat16, (m, k)]()
@@ -88,4 +88,4 @@ if __name__ == "__main__":
         baseline="torch",
         ref="torch")
 
-    p.run(ncu=args.ncu)
+    p.run(ncu=args.ncu, csv=args.csv)
