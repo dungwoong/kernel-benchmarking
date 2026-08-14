@@ -1,9 +1,9 @@
-# Profiles compiler_2 vs CuteDSL vs Torch vs TRT rmsnorm+linear over the GEMM_SHAPES configs
+# Profiles compiler_2 vs CuteDSL vs Torch vs TRT lora over the GEMM_SHAPES configs
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. & pwd)"
 
 # Default CSV file, comment out to specify where to redirect stdout for unstructured output
-CSV="${1:-results/rmsnorm_linear_$(date +%Y%m%d_%H%M%S).csv}"
+CSV="${1:-results/lora_$(date +%Y%m%d_%H%M%S).csv}"
 
 # Write the header into CSV, overwrites the files
 # or to stdout when CSV is not set
@@ -17,6 +17,6 @@ fi
 
 for i in $(seq 0 10)
 do
-    python3 $DIR/demo/new_profiling/rmsnorm_linear_new.py $i ${CSV:+--csv "$CSV"}
+    python3 $DIR/demo/new_profiling/lora_new.py $i ${CSV:+--csv "$CSV"}
     sleep 3
 done
