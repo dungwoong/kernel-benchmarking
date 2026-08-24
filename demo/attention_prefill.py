@@ -42,6 +42,29 @@ class AttentionBaseline:
         self.cache_K = cache_K
         self.cache_V = cache_V
 
+@torch.compile
+def inductor_attention(q, k, v):
+    # all head-major: (H, q_len, D) x (H, kv_len, D) -> (H, q_len, D)
+    scale = (HEAD_DIM ** -0.5)
+    attn_weights = torch.matmul(q, k.transpose(-2, -1)) * scale
+    attn_probs = torch.nn.functional.softmax(attn_weights, dim=-1)
+
+    # (nheads, q_len, kv_len) x (nheads, kv_len, dim) -> (nheads, q_len, dim)
+    output = torch.matmul(attn_probs, v)
+    return output
+
+
+class InductorBaseline(AttentionBaseline):
+    def __init__(self, cache_K, cache_V):
+        # the matmuls want head-major, so flip the cache to (H, S, D) once here
+        super().__init__(cache_K.transpose(0, 1), cache_V.transpose(0, 1))
+
+    def __call__(self, q):
+        # (B, Sq, H, D) -> (H, Sq, D), a free view
+        qh = q.squeeze(0).transpose(0, 1)
+        # back to (Sq, H, D) so it lines up with the reference
+        return inductor_attention(qh, self.cache_K, self.cache_V).transpose(0, 1)
+
 
 class FlashInferBaseline(AttentionBaseline):
     def __call__(self, q):
@@ -172,6 +195,7 @@ if __name__ == "__main__":
     pairs = []
     for name, cls in [
         ("attn_torch_sdpa",      TorchSDPABaseline),
+        ("attn_inductor",        InductorBaseline),
         ("attn_flashinfer",      FlashInferBaseline),
         ("attn_fa3",             FA3Baseline),
         ('attn_hel',             HelAttention),
