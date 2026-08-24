@@ -8,12 +8,17 @@ from cdsl_fn_utils import compile_cutedsl
 from trt_utils import build_trt_runner
 from baselines.rmsnorm_swiglu_trt import SwigluSeparateModule
 
+from kernels.hel.swiglu import get_kernel as get_c2_kernel
+from compiler import compile_hel
+
 """
 Profiles torch gemm vs cutedsl gemm
 
 Uses new profiling setup
 """
 torch.manual_seed(18)
+
+C2_TILE_M, C2_TILE_N, C2_TILE_K = 128, 128, 64
 
 # can't do torch.compile
 def torch_gemm(a: torch.Tensor, b: torch.Tensor, b1: torch.Tensor):
@@ -52,6 +57,13 @@ if __name__ == "__main__":
         return o
     
     m, n, k = prob_args.arg('m', 'n', 'k')
+    c2_kernel = compile_hel(get_c2_kernel(m, n, k, C2_TILE_M, C2_TILE_N, C2_TILE_K), name=f'swiglu_{m}x{n}x{k}')
+
+    def c2_kernel_fn(a_: torch.Tensor, b_: torch.Tensor, b1_: torch.Tensor):
+        o = torch.empty(a_.shape[0], b_.shape[0], dtype=torch.bfloat16, device='cuda')
+        c2_kernel(a_, b_, b1_, o)
+        return o
+
     trt_tensors = prob_args.tensors((0, 1, 2))
     trt_runner = build_trt_runner(
         module=SwigluSeparateModule(),
@@ -64,10 +76,10 @@ if __name__ == "__main__":
 
     p = ProfilingJob(
         "swiglu",
-        kernels={"cutedsl": cdsl_kernel, "torch": torch_swiglu, "tensorrt": trt_runner, "max": torch_gemm},
+        kernels={"cutedsl": cdsl_kernel, "torch": torch_swiglu, "tensorrt": trt_runner, "c2": c2_kernel_fn, "max": torch_gemm},
         args=prob_args,
-        arg_mask={"torch": (0, 1, 2), "cutedsl": (0, 1, 2), "tensorrt": (0, 1, 2), "max": (0, 1, 2)},
+        arg_mask={"torch": (0, 1, 2), "cutedsl": (0, 1, 2), "tensorrt": (0, 1, 2), "max": (0, 1, 2), "c2": (0, 1, 2)},
         baseline="torch",
         ref="torch")
     
-    p.run(ncu=args.ncu)
+    p.run(ncu=args.ncu, csv=args.csv)

@@ -7,10 +7,16 @@ from cdsl_fn_utils import compile_cutedsl
 from trt_utils import build_trt_runner
 from baselines.lora import LoraModule
 
+from kernels.hel.lora import get_kernel as get_c2_kernel
+from compiler import compile_hel
+
 """
 LoRA, uses lora_dim=16
 """
 torch.manual_seed(18)
+
+LORA_DIM = 16
+C2_TILE_M, C2_TILE_N, C2_TILE_K = 128, 256, 64
 
 @torch.compile
 def torch_kernel(a: torch.Tensor, b: torch.Tensor, lA: torch.Tensor, lB: torch.Tensor):
@@ -25,6 +31,7 @@ gemm = LoRASM90(
     ab_stage=3,
     reuse_ab=True,
     is_persistent=False)
+
 
 if __name__ == "__main__":
     args = get_profiling_job_args()
@@ -43,6 +50,14 @@ if __name__ == "__main__":
         return o
     
     m, n, k = prob_args.arg('m', 'n', 'k')
+    c2_kernel = compile_hel(get_c2_kernel(m, n, k, C2_TILE_M, C2_TILE_N, C2_TILE_K, LORA_DIM), name=f'lora_{m}x{n}x{k}')
+
+    def c2_kernel_fn(a_: torch.Tensor, b_: torch.Tensor, lA_: torch.Tensor, lB_: torch.Tensor):
+        o = torch.empty(a_.shape[0], b_.shape[0], dtype=torch.bfloat16, device='cuda')
+        lxa = a_ @ lA_.t()
+        c2_kernel(a_, b_, lxa, lB_, o)
+        return o
+
     trt_runner = build_trt_runner(
         module=LoraModule(),
         example_inputs=prob_args.tensors((0, 1, 2, 3)),
@@ -53,10 +68,10 @@ if __name__ == "__main__":
 
     p = ProfilingJob(
         "lora",
-        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, 'trt': trt_runner},
+        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, 'trt': trt_runner, 'c2': c2_kernel_fn},
         args=prob_args,
-        arg_mask={"torch": (0, 1, 2, 3), "cutedsl": (0, 1, 2, 3)},
+        arg_mask={"torch": (0, 1, 2, 3), "cutedsl": (0, 1, 2, 3), 'c2': (0, 1, 2, 3)},
         baseline="torch",
         ref="torch")
     
-    p.run(ncu=args.ncu)
+    p.run(ncu=args.ncu, csv=args.csv)

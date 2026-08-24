@@ -1,11 +1,17 @@
-# Profiles CuteDSL vs Torch vs cuBLAS gemm for available GEMM shapes
-# uses m128n256 as the tile size for torch
+# Profiles compiler_2 vs CuteDSL vs Torch gemm over the GEMM_SHAPES configs
 
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. & pwd)"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-python3 $DIR/demo/gen_header.py ExperimentOutput
+# Default CSV file, pass a path as the first argument to override
+CSV="${1:-results/gemm_$(date +%Y%m%d_%H%M%S).csv}"
 
-while read -r m n k; do
-    python3 $DIR/demo/gemm.py "$m" "$n" "$k" --to_csv
-    sleep 2
-done < $DIR/res/cdsl_gemm_shapes_m128n256.txt
+# Write the header into CSV, overwrites the file
+mkdir -p "$(dirname "$CSV")"
+echo writing csv to $CSV
+python3 $DIR/demo/gen_header.py ExperimentOutput > "$CSV"
+
+for i in $(seq 0 10)
+do
+    python3 $DIR/demo/new_profiling/gemm_new.py $i --csv "$CSV"
+    sleep 3
+done

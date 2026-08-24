@@ -5,12 +5,17 @@ from workload_shapes import GEMM_ARGS_NT
 from profile_utils import ProfilingJob, get_profiling_job_args
 from cdsl_fn_utils import compile_cutedsl
 
+from kernels.hel.gemm import get_kernel as get_c2_kernel
+from compiler import compile_hel
+
 """
-Profiles torch gemm vs cutedsl gemm
+Profiles torch gemm vs cutedsl gemm vs compiler_2's autotuned gemm
 
 Uses new profiling setup
 """
 torch.manual_seed(18)
+
+C2_TILE_M, C2_TILE_N, C2_TILE_K = 128, 256, 64
 
 @torch.compile
 def torch_kernel(a: torch.Tensor, b: torch.Tensor):
@@ -35,17 +40,25 @@ if __name__ == "__main__":
     # Compile CuteDSL manually
     compiled_gemm = compile_cutedsl(prob_args.tensors(), gemm, include_stream=False)
 
+    m, n, k = prob_args.arg('m', 'n', 'k')
+    c2_kernel = compile_hel(get_c2_kernel(m, n, k, C2_TILE_M, C2_TILE_N, C2_TILE_K), name=f'gemm_{m}x{n}x{k}')
+
     def cdsl_kernel(a_: torch.Tensor, b_: torch.Tensor):
         o = torch.empty(a_.shape[0], b_.shape[0], dtype=torch.bfloat16, device='cuda')
         compiled_gemm(a_, b_, o)
         return o
 
+    def c2_kernel_fn(a_: torch.Tensor, b_: torch.Tensor):
+        o = torch.empty(a_.shape[0], b_.shape[0], dtype=torch.bfloat16, device='cuda')
+        c2_kernel(a_, b_, o)
+        return o
+
     p = ProfilingJob(
         "gemm",
-        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel},
+        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, "c2": c2_kernel_fn},
         args=prob_args,
-        arg_mask={"torch": (0, 1), "cutedsl": (0, 1)},
+        arg_mask={"torch": (0, 1), "cutedsl": (0, 1), "c2": (0, 1)},
         baseline="torch",
         ref="torch")
-    
-    p.run(ncu=args.ncu)
+
+    p.run(ncu=args.ncu, csv=args.csv)

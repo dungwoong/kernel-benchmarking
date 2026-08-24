@@ -7,12 +7,17 @@ from trt_utils import build_trt_runner
 from baselines.rmsnorm_swiglu_trt import RMSNormLinearModule
 from triton.testing import do_bench
 
+from kernels.hel.rmsnorm_linear import get_kernel as get_c2_kernel
+from compiler import compile_hel
+
 """
 RMSNorm + Linear
 """
 torch.manual_seed(18)
 
 EPS = 1e-5
+
+C2_TILE_M, C2_TILE_N, C2_TILE_K = 128, 256, 64
 
 @torch.compile
 def torch_kernel(a: torch.Tensor, b: torch.Tensor, eps: float=EPS):
@@ -68,6 +73,14 @@ if __name__ == "__main__":
     
     # NOTE TRT initializes eps in the object
     m, n, k = prob_args.arg('m', 'n', 'k')
+    # NOTE c2 sets eps in the program
+    c2_kernel = compile_hel(get_c2_kernel(m, n, k, C2_TILE_M, C2_TILE_N, C2_TILE_K), name=f'rmsnorm_linear_{m}x{n}x{k}')
+
+    def c2_kernel_fn(a_: torch.Tensor, b_: torch.Tensor):
+        o = torch.empty(a_.shape[0], b_.shape[0], dtype=torch.bfloat16, device='cuda')
+        c2_kernel(a_, b_, o)
+        return o
+
     trt_runner = build_trt_runner(
         module=RMSNormLinearModule(eps=EPS),
         example_inputs=prob_args.tensors((0, 1)),
@@ -78,10 +91,10 @@ if __name__ == "__main__":
 
     p = ProfilingJob(
         "rmsnorm_lin",
-        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, 'trt': trt_runner, 'max': torch_gemm},
+        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, 'trt': trt_runner, 'c2': c2_kernel_fn, 'max': torch_gemm},
         args=prob_args,
-        arg_mask={"torch": (0, 1, 3), "cutedsl": (0, 1, 3), "trt": (0, 1), 'max': (0, 1)},
+        arg_mask={"torch": (0, 1, 3), "cutedsl": (0, 1, 3), "trt": (0, 1), 'max': (0, 1), 'c2': (0, 1)},
         baseline="torch",
         ref="torch")
     
-    p.run(ncu=args.ncu)
+    p.run(ncu=args.ncu, csv=args.csv)

@@ -6,6 +6,7 @@ import flash_attn_interface
 from profile_utils import ExperimentOutput, get_normal_bernoulli, get_attention_args
 from cutedsl_kernels import DAttn2, DAttnSplit1, AttnReduce1
 from cdsl_helpers.cdsl_fn_utils import compile_cutedsl
+from torch.nn.attention import SDPBackend, sdpa_kernel
 
 torch.manual_seed(18)
 
@@ -45,6 +46,14 @@ class FlashInferBaseline(AttentionBaseline):
             kv_layout="NHD",
             causal=CAUSAL,
         )
+        # This does not work since flashinfer expects 1 new token ONLY, but this is decoding attention
+        # out = flashinfer.single_decode_with_kv_cache(
+        #     q = q.squeeze(0).squeeze(0),
+        #     k = self.cache_K,
+        #     v = self.cache_V,
+        #     kv_layout="NHD",
+        #     # causal=CAUSAL,
+        # )
         return out.unsqueeze(0)
 
 
@@ -186,13 +195,16 @@ if __name__ == "__main__":
             baseline = baseline.with_kernel(compiled_attn_splitk, compiled_attn_reduce)
         pairs.append((name, baseline))
 
-    tensors = (q,)
-    outputs = []
-    for name, baseline in pairs:
-        out = ExperimentOutput(name, q_len, kv_len, nheads)
-        out.run(baseline, tensors, ref)
-        outputs.append(out)
-        time.sleep(2)
+    
+    # CuDNN seems to work fine in the decoding case, so we can make torch sdpa use cudnn
+    with sdpa_kernel([SDPBackend.CUDNN_ATTENTION]):
+        tensors = (q,)
+        outputs = []
+        for name, baseline in pairs:
+            out = ExperimentOutput(name, q_len, kv_len, nheads)
+            out.run(baseline, tensors, ref)
+            outputs.append(out)
+            time.sleep(2)
 
     if args.to_csv:
         for out in outputs:
