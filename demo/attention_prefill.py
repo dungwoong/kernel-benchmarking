@@ -18,7 +18,7 @@ HEAD_DIM = 128
 CAUSAL = False
 
 # hel attention config: tile_m must be a multiple of 64, kv_len a multiple of tile_n
-HEL_TILE_M, HEL_TILE_N, HEL_STAGES = 64, 128, 2
+HEL_TILE_M, HEL_TILE_N, HEL_STAGES = 128, 128, 2
 
 
 def naive_attention(q, k_cache, v_cache):
@@ -52,14 +52,6 @@ class FlashInferBaseline(AttentionBaseline):
             kv_layout="NHD",
             causal=CAUSAL,
         )
-        # This does not work since flashinfer expects 1 new token ONLY, but this is decoding attention
-        # out = flashinfer.single_decode_with_kv_cache(
-        #     q = q.squeeze(0).squeeze(0),
-        #     k = self.cache_K,
-        #     v = self.cache_V,
-        #     kv_layout="NHD",
-        #     # causal=CAUSAL,
-        # )
         return out.unsqueeze(0)
 
 
@@ -68,17 +60,6 @@ class FA3Baseline(AttentionBaseline):
         full_K = self.cache_K.unsqueeze(0)
         full_V = self.cache_V.unsqueeze(0)
         return flash_attn_interface.flash_attn_func(q, full_K, full_V, causal=CAUSAL)
-
-
-class FA3FlashDecodeBaseline(AttentionBaseline):
-    def __call__(self, q):
-        return flash_attn_interface.flash_attn_with_kvcache(
-            q=q,
-            k_cache=self.cache_K.unsqueeze(0),
-            v_cache=self.cache_V.unsqueeze(0),
-            # cache_seqlens=self.cache_K.shape[0],
-            causal=CAUSAL,
-        )
 
 
 class TorchSDPABaseline(AttentionBaseline):
@@ -109,34 +90,6 @@ dattn_split = DAttnSplit1(
     )
 dattn_reduce = AttnReduce1(n=128, splits=NSPLITS)
 
-class CDSLAttention(AttentionBaseline):
-    def with_kernel(self, kernel):
-        self.kernel = kernel
-        return self
-    
-    def __call__(self, q):
-        q = q.squeeze(0)
-        o = torch.empty_like(q)
-        multiplier = q.shape[-1] ** -0.5
-        self.kernel(q, self.cache_K, self.cache_V, o, multiplier)
-        return o
-
-class CDSLAttentionSplitK(AttentionBaseline):
-    def with_kernel(self, kernel, reduction_kernel):
-        self.kernel = kernel
-        self.reduce = reduction_kernel
-        return self
-    
-    def __call__(self, q):
-        q = q.squeeze(0)
-        M, H, D = q.shape
-        multiplier = D ** -0.5
-        o = torch.empty((H, M, NSPLITS, D), dtype=torch.float32, device='cuda')
-        osum = torch.empty((H, NSPLITS, M), dtype=torch.float32, device='cuda')
-        ofinal = torch.empty((M, H, D), dtype=torch.bfloat16, device='cuda')
-        self.kernel(q, self.cache_K, self.cache_V, o, osum, multiplier)
-        self.reduce(o, osum, ofinal)
-        return ofinal
 
 class HelAttention(AttentionBaseline):
     """hel attention: q/k/v/o are head-major (H, S, D), cache is stored that way"""
@@ -147,6 +100,7 @@ class HelAttention(AttentionBaseline):
     def __call__(self, q):
         # (B, Sq, H, D) -> (H, Sq, D), a free view since the kernel reads strides from the tensor
         qh = q.squeeze(0).transpose(0, 1)
+        # print(qh.shape)
         H, M, D = qh.shape
         o = torch.empty((H, M, D), dtype=torch.bfloat16, device='cuda')
         self.kernel(qh, self.cache_K, self.cache_V, o)
@@ -202,6 +156,7 @@ if __name__ == "__main__":
 
     # hel wants head-major (H, S, D) tensors, and one m-tile covering all of q_len
     def make_hel_cache():
+        # return full_K.transpose(0, 1).contiguous(), full_V.transpose(0, 1).contiguous()
         return full_K.clone().transpose(0, 1), full_V.clone().transpose(0, 1)
 
     assert kv_len % HEL_TILE_N == 0, f'hel kernel needs kv_len divisible by {HEL_TILE_N}'
@@ -219,9 +174,6 @@ if __name__ == "__main__":
         ("attn_torch_sdpa",      TorchSDPABaseline),
         ("attn_flashinfer",      FlashInferBaseline),
         ("attn_fa3",             FA3Baseline),
-        ("attn_fa3_flashdecode", FA3FlashDecodeBaseline),
-        ("attn_cdsl",            CDSLAttention),
-        ('attn_cdsl_splitk',     CDSLAttentionSplitK),
         ('attn_hel',             HelAttention),
     ]:
         cK, cV = make_hel_cache() if name == 'attn_hel' else make_cache()
