@@ -106,7 +106,7 @@ def cuda_timings(func, warmup=10, bench=50):
     return timings
 
 
-def do_bench_mod(fn, warmup=25, rep=100, min_reps=20, stream=None):
+def do_bench_mod(fn, warmup=25, rep=100, min_reps=100, stream=None):
     """
     Copies triton do_bench, but only returns all timings, has a minimum reps parameter, and enables non-default stream
     
