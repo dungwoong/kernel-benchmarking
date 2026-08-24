@@ -205,7 +205,7 @@ def get_attention_args(parse=True):
     parser.add_argument("kv_len", type=int)
     parser.add_argument("nheads", type=int)
 
-    parser.add_argument("--to_csv", action='store_true')
+    parser.add_argument("--csv", default=None, help="append the results to csv file instead of stdout")
     if parse:
         args = parser.parse_args()
         return args
