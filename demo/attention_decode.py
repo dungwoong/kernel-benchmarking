@@ -69,21 +69,21 @@ class InductorBaseline(AttentionBaseline):
 
 class FlashInferBaseline(AttentionBaseline):
     def __call__(self, q):
-        out = flashinfer.single_prefill_with_kv_cache(
-            q=q.squeeze(0),
-            k=self.cache_K,
-            v=self.cache_V,
-            kv_layout="NHD",
-            causal=CAUSAL,
-        )
-        # This does not work since flashinfer expects 1 new token ONLY, but this is decoding attention
-        # out = flashinfer.single_decode_with_kv_cache(
-        #     q = q.squeeze(0).squeeze(0),
-        #     k = self.cache_K,
-        #     v = self.cache_V,
+        # out = flashinfer.single_prefill_with_kv_cache(
+        #     q=q.squeeze(0),
+        #     k=self.cache_K,
+        #     v=self.cache_V,
         #     kv_layout="NHD",
-        #     # causal=CAUSAL,
+        #     causal=CAUSAL,
         # )
+        # This does not work since flashinfer expects 1 new token ONLY, but this is decoding attention
+        out = flashinfer.single_decode_with_kv_cache(
+            q = q.squeeze(0).squeeze(0),
+            k = self.cache_K,
+            v = self.cache_V,
+            kv_layout="NHD",
+            # causal=CAUSAL,
+        )
         return out.unsqueeze(0)
 
 
@@ -181,6 +181,7 @@ class HelAttention(AttentionBaseline):
 if __name__ == "__main__":
     args = get_attention_args()
     q_len, kv_len, nheads = args.q_len, args.kv_len, args.nheads
+    assert q_len == 1, "Only supports q_len = 1, change flashinfer to use prefill to allow other lengths"
 
     # KV cache pre-populated with kv_len tokens
     full_K_64 = get_normal_bernoulli(
