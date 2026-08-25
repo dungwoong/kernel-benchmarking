@@ -59,3 +59,11 @@ ATTENTION_ARGS = KernelArgs(
     ProfilingTensor(('batch', 'seq_len', 'heads', 'head_dim')), # v
     configs=ATTENTION_SHAPES,
 )
+
+# The Helion kernel takes (B, H, S, D)
+ATTENTION_ARGS_BHSD = KernelArgs(
+    ProfilingTensor(('batch', 'heads', 'seq_len', 'head_dim')), # q
+    ProfilingTensor(('batch', 'heads', 'seq_len', 'head_dim')), # k
+    ProfilingTensor(('batch', 'heads', 'seq_len', 'head_dim')), # v
+    configs=ATTENTION_SHAPES,
+)
