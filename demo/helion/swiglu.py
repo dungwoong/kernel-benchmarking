@@ -1,7 +1,7 @@
 import torch
 from profile_utils import ProfilingJob, get_profiling_job_args
 from workload_shapes import SWIGLU_NT
-from helion_kernels.kernel_runner import SwiGLU
+from helion_utils.kernel_runner import SwiGLU
 
 torch.manual_seed(18)
 

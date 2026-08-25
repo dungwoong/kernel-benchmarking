@@ -1,7 +1,7 @@
 import torch
 from profile_utils import ProfilingJob, get_profiling_job_args
 from workload_shapes import RMSNORM_LINEAR_ARGS_NT
-from helion_kernels import RMSNormLinear
+from helion_utils.kernel_runner import RMSNormLinear
 
 torch.manual_seed(18)
 
