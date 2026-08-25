@@ -139,7 +139,7 @@ def cuda_timings(func, warmup=10, bench=50):
     return timings
 
 
-def do_bench_mod(fn, warmup=25, rep=100, min_reps=20, stream=None):
+def do_bench_mod(fn, warmup=25, rep=100, min_reps=100, stream=None):
     """
     Copies triton do_bench, but only returns all timings, has a minimum reps parameter, and enables non-default stream
     
@@ -238,7 +238,7 @@ def get_attention_args(parse=True):
     parser.add_argument("kv_len", type=int)
     parser.add_argument("nheads", type=int)
 
-    parser.add_argument("--to_csv", action='store_true')
+    parser.add_argument("--csv", default=None, help="append the results to csv file instead of stdout")
     if parse:
         args = parser.parse_args()
         return args
