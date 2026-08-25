@@ -7,7 +7,7 @@ from bench_kernels.helion.rmsnorm_linear import rmsnorm_lin_kernel
 from bench_kernels.helion.swiglu import swiglu_kernel
 from bench_kernels.helion.lora import lora_kernel
 from bench_kernels.helion.attention import attention_kernel_fn
-from .dump_ir import dump_ir
+from helion_utils.dump_ir import dump_ir
 
 CACHE_DIR = os.path.join(os.path.dirname(__file__), "autotune_cache")
 
