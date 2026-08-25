@@ -44,3 +44,18 @@ LORA_NT_16 = KernelArgs(
     EmptyTensor(('m', 'n')),
     configs=GEMM_SHAPES
 )
+
+# seq_len stops at 8192 because ProfilingJob runs the ref kernel in fp64 
+# and with larger seq_len the job errors with OOM
+ATTENTION_SHAPES = [
+    {'batch': 1, 'heads': 32, 'seq_len': s, 'head_dim': d}
+    for d in (64, 128)
+    for s in (1024, 2048, 4096, 8192)
+]
+
+ATTENTION_ARGS = KernelArgs(
+    ProfilingTensor(('batch', 'seq_len', 'heads', 'head_dim')), # q (B, S, H, D)
+    ProfilingTensor(('batch', 'seq_len', 'heads', 'head_dim')), # k
+    ProfilingTensor(('batch', 'seq_len', 'heads', 'head_dim')), # v
+    configs=ATTENTION_SHAPES,
+)

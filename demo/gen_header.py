@@ -1,13 +1,18 @@
-from profile_utils import ExperimentOutput
+from profile_utils import ExperimentOutput, AttentionOutput
 import argparse
+
+OUTPUTS = {
+    "ExperimentOutput": ExperimentOutput,
+    "AttentionOutput": AttentionOutput,
+}
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "method", 
-        choices=["ExperimentOutput"],
+        "method",
+        choices=list(OUTPUTS),
     )
     args = parser.parse_args()
-    if args.method == "ExperimentOutput":
-        print(ExperimentOutput.list_to_csv(ExperimentOutput.header()))
+    out = OUTPUTS[args.method]
+    print(out.list_to_csv(out.header()))
