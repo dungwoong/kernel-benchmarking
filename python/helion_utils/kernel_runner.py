@@ -56,6 +56,17 @@ class HelionKernel:
             dim_list.extend([str(dim) for dim in t.shape])
         return '_'.join(dim_list)
 
+    def autotune(self, *tensors):
+        """
+        Tunes for a shape, without compile step. 
+
+        Returns the cache key and whether the autotune ran so the caller can name and time the result.
+        """
+        key = self._tensors_to_key(*tensors)
+        ran = not os.path.exists(_get_cache_path(self.label, key))
+        autotune_helion_kernel_single(self.fn, self.label, key, tensors)
+        return key, ran
+
     def compile(self, *tensors, allow_compile=True):
         key = self._tensors_to_key(*tensors)
         cache_path = _get_cache_path(self.label, key)
