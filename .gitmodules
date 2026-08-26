@@ -7,4 +7,3 @@
 [submodule "third_party/compiler_2"]
 	path = third_party/compiler_2
 	url = https://github.com/dungwoong/compiler_2.git
-	branch = kernel_demo_redo
