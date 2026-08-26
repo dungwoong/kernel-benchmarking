@@ -8,13 +8,14 @@ import torch
 from profile_utils import ExperimentOutput, write_csv_rows
 
 
-def autotune_runner(runner, prob_args, mask, kernel, csv, output_cls=ExperimentOutput):
+def autotune_runner(runner, prob_args, mask, kernel, csv, output_cls=ExperimentOutput, tensors=None):
     """
     Autotunes for one shape using Helion 
 
     output_cls decides the shape columns
     """
-    tensors = prob_args.tensors(mask)
+    if tensors is None:
+        tensors = prob_args.tensors(mask)
 
     torch.cuda.synchronize()
     t0 = time.perf_counter()
