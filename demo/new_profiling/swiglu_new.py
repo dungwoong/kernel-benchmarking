@@ -8,8 +8,8 @@ from cdsl_fn_utils import compile_cutedsl
 from trt_utils import build_trt_runner
 from baselines.rmsnorm_swiglu_trt import SwigluSeparateModule
 
-from kernels.hel.swiglu import get_kernel as get_c2_kernel
-from compiler import compile_hel
+from compiler_2.kernels.hel.swiglu import get_kernel as get_c2_kernel
+from compiler_2 import compile_hel
 from helion_utils.kernel_runner import SwiGLU
 
 """

@@ -8,8 +8,8 @@ from cutedsl_kernels import DAttn2, DAttnSplit1, AttnReduce1
 from cdsl_helpers.cdsl_fn_utils import compile_cutedsl
 from torch.nn.attention import SDPBackend, sdpa_kernel
 
-from kernels.hel.attention import get_kernel as get_hel_kernel
-from compiler import compile_hel
+from compiler_2.kernels.hel.attention import get_kernel as get_hel_kernel
+from compiler_2 import compile_hel
 from helion_utils.kernel_runner import Attention
 
 torch.manual_seed(18)
