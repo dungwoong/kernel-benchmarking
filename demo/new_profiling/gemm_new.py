@@ -5,8 +5,9 @@ from workload_shapes import GEMM_ARGS_NT
 from profile_utils import ProfilingJob, get_profiling_job_args
 from cdsl_fn_utils import compile_cutedsl
 
-from kernels.hel.gemm import get_kernel as get_c2_kernel
-from compiler import compile_hel
+from compiler_2.kernels.hel.gemm import get_kernel as get_c2_kernel
+from compiler_2 import compile_hel
+from helion_utils.kernel_runner import Matmul
 
 """
 Profiles torch gemm vs cutedsl gemm vs compiler_2's autotuned gemm
@@ -53,11 +54,14 @@ if __name__ == "__main__":
         c2_kernel(a_, b_, o)
         return o
 
+    # Helion will load its tuned config from helion_utils/autotune_cache
+    helion_kernel = Matmul.compile(*prob_args.tensors((0, 1)))
+
     p = ProfilingJob(
         "gemm",
-        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, "c2": c2_kernel_fn},
+        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, "c2": c2_kernel_fn, "helion": helion_kernel},
         args=prob_args,
-        arg_mask={"torch": (0, 1), "cutedsl": (0, 1), "c2": (0, 1)},
+        arg_mask={"torch": (0, 1), "cutedsl": (0, 1), "c2": (0, 1), "helion": (0, 1)},
         baseline="torch",
         ref="torch")
 

@@ -14,34 +14,26 @@ from cdsl_fn_utils import compile_cutedsl
 # Add more if necessary
 # ---------------------------------------
 
-@dataclass
-class ExperimentOutput:
+class CsvOutput:
     """
-    Enables most gemm-based experiments,
-    metadata helps capture any additional params(e.g. lora dim)
+    Csv helpers and the measurement pass, shared by the output dataclasses below.
+
+    Subclasses specify the columns.
     """
-    label: str
-    m: int=None
-    n: int=None
-    k: int=None
-    ms_median: float=None
-    ms_mean: float=None
-    ms_std: float=None
-    max_abs: float=None
-    max_rel: float=None
-    rmse: float=None
-    baseline_speedup: float=None
-    metadata: str=None
 
     @classmethod
     def header(cls) -> tuple:
         return tuple(f.name for f in fields(cls))
-    
+
     def values(self):
         return tuple(getattr(self, f.name) for f in fields(self))
-    
+
     def items(self):
         return {f.name: getattr(self, f.name) for f in fields(self)}
+
+    @staticmethod
+    def list_to_csv(lst):
+        return ','.join(str(x) for x in lst)
 
     def run(self, kernel, tensors, ref_output: torch.Tensor):
         """
@@ -65,9 +57,52 @@ class ExperimentOutput:
     def run_ncu(self, kernel, tensors):
         kernel(*tensors)
 
-    @staticmethod
-    def list_to_csv(lst):
-        return ','.join(str(x) for x in lst)
+
+@dataclass
+class ExperimentOutput(CsvOutput):
+    """
+    Enables most gemm-based experiments,
+    metadata helps capture any additional params(e.g. lora dim)
+
+    A profiling run fills the timing columns,
+    an autotuning run fills the autotune columns and each leaves the other set None.
+    """
+    label: str
+    m: int=None
+    n: int=None
+    k: int=None
+    ms_median: float=None
+    ms_mean: float=None
+    ms_std: float=None
+    max_abs: float=None
+    max_rel: float=None
+    rmse: float=None
+    baseline_speedup: float=None
+    metadata: str=None
+    autotune_seconds: float=None
+
+
+@dataclass
+class AttentionOutput(CsvOutput):
+    """
+    Enables attention experiments. Autotuning and profiling.
+    """
+    label: str
+    batch: int=None
+    heads: int=None
+    seq_len: int=None
+    q_len: int=None
+    kv_len: int=None
+    head_dim: int=None
+    ms_median: float=None
+    ms_mean: float=None
+    ms_std: float=None
+    max_abs: float=None
+    max_rel: float=None
+    rmse: float=None
+    baseline_speedup: float=None
+    metadata: str=None
+    autotune_seconds: float=None
 
 
 def write_csv_rows(rows, path=None):
@@ -353,7 +388,8 @@ class KernelArgs:
 
 
 class ProfilingJob:
-    def __init__(self, label: str, kernels: dict, args: KernelArgs, baseline: str, ref: str, arg_mask: dict=None):
+    def __init__(self, label: str, kernels: dict, args: KernelArgs, baseline: str, ref: str, arg_mask: dict=None,
+                 output_cls=ExperimentOutput):
         """
         label: workload
         kernels: dict of (name: str, kernel: callable)
@@ -363,13 +399,19 @@ class ProfilingJob:
         arg_mask: Each kernel may use different tensors from <args>. Index them with <arg_mask>
             e.g. {'k1': (0, 1), 'k2': (0, 1, 2)}
             Passing None as the value will default to all args. Passing no arg mask will use all args for all kernels.
+        output_cls: row type, which decides the shape columns. 
+            AttentionOutput for attention workloads, ExperimentOutput for most gemm-based workloads.
         """
         arg_mask = dict() if arg_mask is None else arg_mask
         self.kernels = kernels
         self.baseline = baseline
         self.args = {k: args.tensors(arg_mask.get(k, None)) for k in kernels}
         self.ref = self.kernels[ref](*args.tensors_64(arg_mask.get(ref, None)))
-        self.outputs = {k: ExperimentOutput(f'{label}:{args._populated_idx}:{k}') for k in kernels}
+        # fill whichever shape columns <output_cls> declares
+        shape = {f.name: args._arg(f.name) for f in fields(output_cls)}
+        shape = {dim: v for dim, v in shape.items() if v is not None}
+        self.outputs = {name: output_cls(f'{label}:{args._populated_idx}:{name}', **shape)
+                        for name in kernels}
     
     def _run(self):
         for k in self.kernels:
@@ -391,7 +433,7 @@ class ProfilingJob:
         self.output_results(csv)
 
     def output_results(self, csv=None):
-        write_csv_rows([ExperimentOutput.list_to_csv(self.outputs[k].values()) for k in self.outputs], csv)
+        write_csv_rows([CsvOutput.list_to_csv(self.outputs[k].values()) for k in self.outputs], csv)
 
 def get_profiling_job_args(parse=True):
     """

@@ -11,7 +11,6 @@
 # CSV is passed to the run script as its first argument, leave it unset to use the run script's default
 echo using container $CONTAINER
 echo using script $SCRIPT
-echo writing csv to ${CSV:-"the run script default"}
 module load apptainer
 
 apptainer exec --nv \

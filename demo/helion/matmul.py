@@ -1,7 +1,7 @@
 import torch
 from profile_utils import ProfilingJob, get_profiling_job_args
 from workload_shapes import GEMM_ARGS_NT
-from helion_kernels import Matmul
+from helion_utils.kernel_runner import Matmul
 
 torch.manual_seed(18)
 

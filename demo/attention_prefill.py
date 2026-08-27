@@ -8,8 +8,9 @@ from cutedsl_kernels import DAttn2, DAttnSplit1, AttnReduce1
 from cdsl_helpers.cdsl_fn_utils import compile_cutedsl
 from torch.nn.attention import SDPBackend, sdpa_kernel
 
-from kernels.hel.attention import get_kernel as get_hel_kernel
-from compiler import compile_hel
+from compiler_2.kernels.hel.attention import get_kernel as get_hel_kernel
+from compiler_2 import compile_hel
+from helion_utils.kernel_runner import Attention
 
 torch.manual_seed(18)
 
@@ -114,6 +115,21 @@ dattn_split = DAttnSplit1(
 dattn_reduce = AttnReduce1(n=128, splits=NSPLITS)
 
 
+class HelionAttention(AttentionBaseline):
+    """helion attention: q/k/v are (B, H, S, D)"""
+    def with_kernel(self, kernel):
+        self.kernel = kernel
+        return self
+
+    def __call__(self, q):
+        # (S, H, D) -> (B, H, S, D)
+        full_K = self.cache_K.unsqueeze(0).transpose(1, 2)
+        full_V = self.cache_V.unsqueeze(0).transpose(1, 2)
+        o = self.kernel(q.transpose(1, 2), full_K, full_V)
+        # back to (B, S, H, D) so it lines up with the reference
+        return o.transpose(1, 2)
+
+
 class HelAttention(AttentionBaseline):
     """hel attention: q/k/v/o are head-major (H, S, D), cache is stored that way"""
     def with_kernel(self, kernel):
@@ -192,6 +208,12 @@ if __name__ == "__main__":
         name=f'hel_attention_{q_len}x{kv_len}x{nheads}',
     )
 
+    # Helion loads its tuned config from helion_utils/autotune_cache
+    helion_q = q.transpose(1, 2)
+    helion_K = full_K.unsqueeze(0).transpose(1, 2)
+    helion_V = full_V.unsqueeze(0).transpose(1, 2)
+    compiled_attn_helion = Attention.compile(helion_q, helion_K, helion_V)
+
     pairs = []
     for name, cls in [
         ("attn_torch_sdpa",      TorchSDPABaseline),
@@ -199,6 +221,7 @@ if __name__ == "__main__":
         ("attn_flashinfer",      FlashInferBaseline),
         ("attn_fa3",             FA3Baseline),
         ('attn_hel',             HelAttention),
+        ('attn_helion',          HelionAttention),
     ]:
         cK, cV = make_hel_cache() if name == 'attn_hel' else make_cache()
         baseline = cls(cache_K=cK, cache_V=cV)
@@ -208,6 +231,8 @@ if __name__ == "__main__":
             baseline = baseline.with_kernel(compiled_attn_splitk, compiled_attn_reduce)
         elif name == 'attn_hel':
             baseline = baseline.with_kernel(compiled_attn_hel)
+        elif name == 'attn_helion':
+            baseline = baseline.with_kernel(compiled_attn_helion)
         pairs.append((name, baseline))
 
     
