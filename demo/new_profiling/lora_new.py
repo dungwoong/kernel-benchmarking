@@ -9,6 +9,7 @@ from baselines.lora import LoraModule
 
 from kernels.hel.lora import get_kernel as get_c2_kernel
 from compiler import compile_hel
+from helion_utils.kernel_runner import LoRA
 
 """
 LoRA, uses lora_dim=16
@@ -58,6 +59,9 @@ if __name__ == "__main__":
         c2_kernel(a_, b_, lxa, lB_, o)
         return o
 
+    # Helion loads tuned config from helion_utils/autotune_cache
+    helion_kernel = LoRA.compile(*prob_args.tensors((0, 1, 2, 3)))
+
     trt_runner = build_trt_runner(
         module=LoraModule(),
         example_inputs=prob_args.tensors((0, 1, 2, 3)),
@@ -68,9 +72,9 @@ if __name__ == "__main__":
 
     p = ProfilingJob(
         "lora",
-        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, 'trt': trt_runner, 'c2': c2_kernel_fn},
+        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, 'trt': trt_runner, 'c2': c2_kernel_fn, 'helion': helion_kernel},
         args=prob_args,
-        arg_mask={"torch": (0, 1, 2, 3), "cutedsl": (0, 1, 2, 3), 'c2': (0, 1, 2, 3)},
+        arg_mask={"torch": (0, 1, 2, 3), "cutedsl": (0, 1, 2, 3), 'c2': (0, 1, 2, 3), 'helion': (0, 1, 2, 3)},
         baseline="torch",
         ref="torch")
     

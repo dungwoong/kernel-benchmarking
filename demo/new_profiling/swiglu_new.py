@@ -10,6 +10,7 @@ from baselines.rmsnorm_swiglu_trt import SwigluSeparateModule
 
 from kernels.hel.swiglu import get_kernel as get_c2_kernel
 from compiler import compile_hel
+from helion_utils.kernel_runner import SwiGLU
 
 """
 Profiles torch gemm vs cutedsl gemm
@@ -64,6 +65,9 @@ if __name__ == "__main__":
         c2_kernel(a_, b_, b1_, o)
         return o
 
+    # Helion loads tuned config from helion_utils/autotune_cache
+    helion_kernel = SwiGLU.compile(*prob_args.tensors((0, 1, 2)))
+
     trt_tensors = prob_args.tensors((0, 1, 2))
     trt_runner = build_trt_runner(
         module=SwigluSeparateModule(),
@@ -76,9 +80,9 @@ if __name__ == "__main__":
 
     p = ProfilingJob(
         "swiglu",
-        kernels={"cutedsl": cdsl_kernel, "torch": torch_swiglu, "tensorrt": trt_runner, "c2": c2_kernel_fn, "max": torch_gemm},
+        kernels={"cutedsl": cdsl_kernel, "torch": torch_swiglu, "tensorrt": trt_runner, "c2": c2_kernel_fn, "helion": helion_kernel, "max": torch_gemm},
         args=prob_args,
-        arg_mask={"torch": (0, 1, 2), "cutedsl": (0, 1, 2), "tensorrt": (0, 1, 2), "max": (0, 1, 2), "c2": (0, 1, 2)},
+        arg_mask={"torch": (0, 1, 2), "cutedsl": (0, 1, 2), "tensorrt": (0, 1, 2), "max": (0, 1, 2), "c2": (0, 1, 2), "helion": (0, 1, 2)},
         baseline="torch",
         ref="torch")
     
