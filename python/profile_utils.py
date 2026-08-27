@@ -91,6 +91,8 @@ class AttentionOutput(CsvOutput):
     batch: int=None
     heads: int=None
     seq_len: int=None
+    q_len: int=None
+    kv_len: int=None
     head_dim: int=None
     ms_median: float=None
     ms_mean: float=None

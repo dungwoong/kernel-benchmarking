@@ -16,7 +16,14 @@ mkdir -p "$(dirname "$CSV")"
 echo writing csv to $CSV
 python3 "$DIR/demo/gen_header.py" AttentionOutput > "$CSV"
 
+# prefill: ATTENTION_SHAPES, q_len == kv_len
 for i in $(seq 0 7)
 do
     python3 "$DIR/demo/helion/attention_autotune.py" "$i" --csv "$CSV"
+done
+
+# decode: ATTENTION_DECODE_SHAPES, q_len 1
+for i in $(seq 0 3)
+do
+    python3 "$DIR/demo/helion/attention_decode_autotune.py" "$i" --csv "$CSV"
 done

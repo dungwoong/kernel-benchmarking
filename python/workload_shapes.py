@@ -59,3 +59,17 @@ ATTENTION_ARGS = KernelArgs(
     ProfilingTensor(('batch', 'seq_len', 'heads', 'head_dim')), # v
     configs=ATTENTION_SHAPES,
 )
+
+# Decode attention: 
+# q and k/v have different lengths, so they need separate keys
+ATTENTION_DECODE_SHAPES = [
+    {'batch': 1, 'heads': 32, 'q_len': 1, 'kv_len': s, 'head_dim': 128}
+    for s in (1024, 2048, 4096, 8192)
+]
+
+ATTENTION_DECODE_ARGS = KernelArgs(
+    ProfilingTensor(('batch', 'q_len', 'heads', 'head_dim')),  # q (B, Sq, H, D)
+    ProfilingTensor(('batch', 'kv_len', 'heads', 'head_dim')), # k (B, Skv, H, D)
+    ProfilingTensor(('batch', 'kv_len', 'heads', 'head_dim')), # v
+    configs=ATTENTION_DECODE_SHAPES,
+)
