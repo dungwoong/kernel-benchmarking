@@ -6,7 +6,7 @@ from profile_utils import ProfilingJob, get_profiling_job_args
 from cdsl_fn_utils import compile_cutedsl
 
 from compiler_2.kernels.hel.gemm import get_kernel as get_c2_kernel
-from compiler_2 import compile_hel
+from c2_utils import compile_hel
 from helion_utils.kernel_runner import Matmul
 
 """
