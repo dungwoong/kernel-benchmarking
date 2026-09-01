@@ -3,7 +3,7 @@ import time
 import torch
 import flashinfer
 import flash_attn_interface
-from profile_utils import ExperimentOutput, get_normal_bernoulli, get_attention_args, write_csv_rows
+from profile_utils import ExperimentOutput, get_normal_bernoulli, get_attention_args, write_csv_rows, write_to_file
 from cutedsl_kernels import DAttn2, DAttnSplit1, AttnReduce1
 from cdsl_helpers.cdsl_fn_utils import compile_cutedsl
 from torch.nn.attention import SDPBackend, sdpa_kernel
@@ -11,8 +11,12 @@ from torch.nn.attention import SDPBackend, sdpa_kernel
 from compiler_2.kernels.hel.attention import get_kernel as get_hel_kernel
 from compiler_2 import compile_hel
 from helion_utils.kernel_runner import Attention
+from bench_kernels.tilelang import tilelang_flash_attn as TFA
+from pathlib import Path
 
 torch.manual_seed(18)
+
+current_dir = Path(__file__).resolve().parent.parent
 
 BATCH = 1
 HEAD_DIM = 128
@@ -146,6 +150,21 @@ class HelAttention(AttentionBaseline):
         # back to (Sq, H, D) so it lines up with the reference
         return o.transpose(0, 1)
 
+class TilelangAttention(AttentionBaseline):
+    def __init__(self, cache_K, cache_V):
+        super().__init__(cache_K, cache_V)
+        seqlen, nheads, dim = cache_K.shape
+        self.cache_K = cache_K.unsqueeze(0)
+        self.cache_V = cache_V.unsqueeze(0)
+        self.kernel = TFA.flashattn(1, nheads, seqlen, dim, is_causal=False)
+        write_to_file(current_dir / 'dump', 'tilelang_attn.cu', self.kernel.get_kernel_source())
+    
+    def __call__(self, q):
+        # print(qh.shape, self.cache_K.shape, self.cache_V.shape)
+        # o = torch.empty_like(self.cache_K)
+        o = self.kernel(q, self.cache_K, self.cache_V)
+        return o.squeeze(0)
+
 
 if __name__ == "__main__":
     args = get_attention_args()
@@ -222,6 +241,7 @@ if __name__ == "__main__":
         ("attn_fa3",             FA3Baseline),
         ('attn_hel',             HelAttention),
         ('attn_helion',          HelionAttention),
+        ('attn_tilelang',        TilelangAttention),
     ]:
         cK, cV = make_hel_cache() if name == 'attn_hel' else make_cache()
         baseline = cls(cache_K=cK, cache_V=cV)

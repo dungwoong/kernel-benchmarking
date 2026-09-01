@@ -8,11 +8,17 @@ import numpy as np
 from typing import List, Dict
 from dataclasses import dataclass, fields
 from cdsl_fn_utils import compile_cutedsl
+import os
 
 # ---------------------------------------
 # Output format for any experiments
 # Add more if necessary
 # ---------------------------------------
+
+def write_to_file(file_folder, file_name, text):
+    os.makedirs(file_folder, exist_ok=True)
+    with open(os.path.join(file_folder, file_name), 'w') as f:
+        f.write(text)
 
 class CsvOutput:
     """
