@@ -16,6 +16,70 @@
     "predicted_score": 306498764.8
   },
   {
+    "tag": "hel_attention_1x1024x32",
+    "kernel_file": "hel_attention_1x1024x32.py",
+    "candidate": "candidate_000.py",
+    "num_candidates": 1,
+    "ms_median": 0.016992000862956047,
+    "predicted_score": 12830566.4
+  },
+  {
+    "tag": "hel_attention_1x2048x32",
+    "kernel_file": "hel_attention_1x2048x32.py",
+    "candidate": "candidate_000.py",
+    "num_candidates": 1,
+    "ms_median": 0.02687999978661537,
+    "predicted_score": 25316812.8
+  },
+  {
+    "tag": "hel_attention_1x4096x32",
+    "kernel_file": "hel_attention_1x4096x32.py",
+    "candidate": "candidate_000.py",
+    "num_candidates": 1,
+    "ms_median": 0.04527999833226204,
+    "predicted_score": 50289305.6
+  },
+  {
+    "tag": "hel_attention_1x8192x32",
+    "kernel_file": "hel_attention_1x8192x32.py",
+    "candidate": "candidate_000.py",
+    "num_candidates": 1,
+    "ms_median": 0.0811999998986721,
+    "predicted_score": 100234291.2
+  },
+  {
+    "tag": "hel_attention_simplified_1x1024x32",
+    "kernel_file": "hel_attention_simplified_1x1024x32.py",
+    "candidate": "candidate_000.py",
+    "num_candidates": 1,
+    "ms_median": 0.016224000602960587,
+    "predicted_score": 12035942.4
+  },
+  {
+    "tag": "hel_attention_simplified_1x2048x32",
+    "kernel_file": "hel_attention_simplified_1x2048x32.py",
+    "candidate": "candidate_000.py",
+    "num_candidates": 1,
+    "ms_median": 0.025567999109625816,
+    "predicted_score": 23727564.8
+  },
+  {
+    "tag": "hel_attention_simplified_1x4096x32",
+    "kernel_file": "hel_attention_simplified_1x4096x32.py",
+    "candidate": "candidate_000.py",
+    "num_candidates": 1,
+    "ms_median": 0.04278400167822838,
+    "predicted_score": 47110809.6
+  },
+  {
+    "tag": "hel_attention_simplified_1x8192x32",
+    "kernel_file": "hel_attention_simplified_1x8192x32.py",
+    "candidate": "candidate_000.py",
+    "num_candidates": 1,
+    "ms_median": 0.07548800110816956,
+    "predicted_score": 93877299.2
+  },
+  {
     "tag": "rmsnorm_linear_1024x32768x4096",
     "kernel_file": "rmsnorm_linear_1024x32768x4096.py",
     "candidate": "candidate_003.py",
