@@ -1,0 +1,98 @@
+[
+  {
+    "tag": "gemm_2048x2048x2048",
+    "kernel_file": "gemm_2048x2048x2048.py",
+    "candidate": "candidate_001.py",
+    "num_candidates": 2,
+    "ms_median": 0.027456000447273254,
+    "predicted_score": 38771097.6
+  },
+  {
+    "tag": "gemm_4096x4096x4096",
+    "kernel_file": "gemm_4096x4096x4096.py",
+    "candidate": "candidate_001.py",
+    "num_candidates": 2,
+    "ms_median": 0.1711360067129135,
+    "predicted_score": 306498764.8
+  },
+  {
+    "tag": "rmsnorm_linear_1024x32768x4096",
+    "kernel_file": "rmsnorm_linear_1024x32768x4096.py",
+    "candidate": "candidate_003.py",
+    "num_candidates": 4,
+    "ms_median": 0.3453119993209839,
+    "predicted_score": 647612825.6
+  },
+  {
+    "tag": "rmsnorm_linear_1024x4096x16384",
+    "kernel_file": "rmsnorm_linear_1024x4096x16384.py",
+    "candidate": "candidate_002.py",
+    "num_candidates": 4,
+    "ms_median": 0.16147199273109436,
+    "predicted_score": 316461772.8
+  },
+  {
+    "tag": "rmsnorm_linear_2048x2048x2048",
+    "kernel_file": "rmsnorm_linear_2048x2048x2048.py",
+    "candidate": "candidate_000.py",
+    "num_candidates": 4,
+    "ms_median": 0.028095999732613564,
+    "predicted_score": 39427993.6
+  },
+  {
+    "tag": "rmsnorm_linear_4096x1024x16384",
+    "kernel_file": "rmsnorm_linear_4096x1024x16384.py",
+    "candidate": "candidate_003.py",
+    "num_candidates": 4,
+    "ms_median": 0.15910400450229645,
+    "predicted_score": 320656076.8
+  },
+  {
+    "tag": "rmsnorm_linear_4096x1024x4096",
+    "kernel_file": "rmsnorm_linear_4096x1024x4096.py",
+    "candidate": "candidate_002.py",
+    "num_candidates": 4,
+    "ms_median": 0.04971199855208397,
+    "predicted_score": 79903027.2
+  },
+  {
+    "tag": "rmsnorm_linear_4096x1024x8192",
+    "kernel_file": "rmsnorm_linear_4096x1024x8192.py",
+    "candidate": "candidate_003.py",
+    "num_candidates": 4,
+    "ms_median": 0.08617600053548813,
+    "predicted_score": 160853094.4
+  },
+  {
+    "tag": "rmsnorm_linear_4096x1536x7168",
+    "kernel_file": "rmsnorm_linear_4096x1536x7168.py",
+    "candidate": "candidate_001.py",
+    "num_candidates": 4,
+    "ms_median": 0.1441119983792305,
+    "predicted_score": 274415411.20000005
+  },
+  {
+    "tag": "rmsnorm_linear_4096x4096x4096",
+    "kernel_file": "rmsnorm_linear_4096x4096x4096.py",
+    "candidate": "candidate_001.py",
+    "num_candidates": 4,
+    "ms_median": 0.17337599396705627,
+    "predicted_score": 315417804.8
+  },
+  {
+    "tag": "rmsnorm_linear_8192x1024x2048",
+    "kernel_file": "rmsnorm_linear_8192x1024x2048.py",
+    "candidate": "candidate_001.py",
+    "num_candidates": 4,
+    "ms_median": 0.05020799860358238,
+    "predicted_score": 79904563.2
+  },
+  {
+    "tag": "rmsnorm_linear_8192x2048x4096",
+    "kernel_file": "rmsnorm_linear_8192x2048x4096.py",
+    "candidate": "candidate_001.py",
+    "num_candidates": 4,
+    "ms_median": 0.16763199865818024,
+    "predicted_score": 315417804.8
+  }
+]
