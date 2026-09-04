@@ -1,14 +1,31 @@
 from profile_utils import ProfilingTensor, EmptyTensor, KernelArgs
 
 # Combine these args with a gemm shape
+# GEMM_SHAPES = [
+#     {'m': 2048, 'n': 2048, 'k': 2048},
+#     {'m': 4096, 'n': 4096, 'k': 4096},
+#     {'m': 1024, 'n': 16384, 'k': 2048},
+#     {'m': 1024, 'n': 32768, 'k': 4096},
+#     {'m': 1024, 'n': 4096, 'k': 16384},
+#     {'m': 8192, 'n': 1024, 'k': 2048},
+#     {'m': 8192, 'n': 2048, 'k': 4096},
+#     {'m': 4096, 'n': 1024, 'k': 4096}, # meta-llama/Meta-Llama-3.1-8B k_proj, you can also do m=8192
+#     {'m': 4096, 'n': 1024, 'k': 8192}, # meta-llama/Meta-Llama-3.1-70B k_proj
+#     {'m': 4096, 'n': 1536, 'k': 7168}, # deepseek-ai/DeepSeek-V3 q a proj
+#     {'m': 4096, 'n': 1024, 'k': 16384}, # meta-llama/Meta-Llama-3.1-405B kv proj
+# ]
+
+# Only issue is that m is selected somewhat arbitrarily, but that could represent seqlen in an LLM
 GEMM_SHAPES = [
+    # Square matrices
     {'m': 2048, 'n': 2048, 'k': 2048},
-    {'m': 4096, 'n': 4096, 'k': 4096},
+    {'m': 4096, 'n': 4096, 'k': 4096}, # llama3.1 8B, Q projection
+    {'m': 8192, 'n': 8192, 'k': 8192}, # llama3.1 70B, Q projection
+    # Upcasting shapes
+    {'m': 1024, 'n': 14336, 'k': 4096}, # llama3.1 8B swiglu
+    {'m': 1024, 'n': 28672, 'k': 8192}, # llama3.1 70B swiglu
     {'m': 1024, 'n': 16384, 'k': 2048},
-    {'m': 1024, 'n': 32768, 'k': 4096},
-    {'m': 1024, 'n': 4096, 'k': 16384},
-    {'m': 8192, 'n': 1024, 'k': 2048},
-    {'m': 8192, 'n': 2048, 'k': 4096},
+    # Downcasting shapes
     {'m': 4096, 'n': 1024, 'k': 4096}, # meta-llama/Meta-Llama-3.1-8B k_proj, you can also do m=8192
     {'m': 4096, 'n': 1024, 'k': 8192}, # meta-llama/Meta-Llama-3.1-70B k_proj
     {'m': 4096, 'n': 1536, 'k': 7168}, # deepseek-ai/DeepSeek-V3 q a proj

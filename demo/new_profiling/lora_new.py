@@ -8,7 +8,7 @@ from trt_utils import build_trt_runner
 from baselines.lora import LoraModule
 
 from compiler_2.kernels.hel.lora import get_kernel as get_c2_kernel
-from compiler_2 import compile_hel
+from c2_utils import compile_hel
 from helion_utils.kernel_runner import LoRA
 
 """

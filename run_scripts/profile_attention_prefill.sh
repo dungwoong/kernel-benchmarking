@@ -8,7 +8,7 @@ CSV="${1:-results/attention_prefill_$(date +%Y%m%d_%H%M%S).csv}"
 # Write the header into CSV, overwrites the file
 mkdir -p "$(dirname "$CSV")"
 echo writing csv to $CSV
-echo "label,q_len,kv_len,nheads,ms_median,ms_mean,ms_std,max_abs,max_rel,rmse,baseline_speedup,metadata" > "$CSV"
+echo "label,q_len,kv_len,nheads,ms_median,ms_mean,ms_std,max_abs,max_rel,rmse,baseline_speedup,metadata,autotune_seconds" > "$CSV"
 
 while read -r len nheads; do
     python3 $DIR/demo/attention_prefill.py "$len" "$len" "$nheads" --csv $CSV
