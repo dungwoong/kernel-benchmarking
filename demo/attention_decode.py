@@ -8,8 +8,8 @@ from cutedsl_kernels import DAttn2, DAttnSplit1, AttnReduce1
 from cdsl_helpers.cdsl_fn_utils import compile_cutedsl
 from torch.nn.attention import SDPBackend, sdpa_kernel
 
-from compiler_2.kernels.hel.attention import get_kernel as get_hel_kernel
-from compiler_2 import compile_hel
+from compiler_2.kernels.hel.attention import get_kernel as get_hel_kernel, get_kernel2 as get_hel_kernel_simplified
+from c2_utils import compile_hel
 from helion_utils.kernel_runner import Attention
 
 torch.manual_seed(18)
@@ -193,6 +193,21 @@ class HelAttention(AttentionBaseline):
         # back to (Sq, H, D) so it lines up with the reference
         return o.transpose(0, 1)
 
+class HelAttentionSimplified(AttentionBaseline):
+    """hel attention: q/k/v/o are head-major (H, S, D), cache is stored that way"""
+    def with_kernel(self, kernel):
+        self.kernel = kernel
+        return self
+
+    def __call__(self, q):
+        # (B, Sq, H, D) -> (H, Sq, D), a free view since the kernel reads strides from the tensor
+        qh = q.squeeze(0).transpose(0, 1)
+        H, M, D = qh.shape
+        o = torch.empty((H, M, D), dtype=torch.bfloat16, device='cuda')
+        self.kernel(qh, self.cache_K, self.cache_V, o)
+        # back to (Sq, H, D) so it lines up with the reference
+        return o.transpose(0, 1)
+
 
 if __name__ == "__main__":
     args = get_attention_args()
@@ -254,6 +269,11 @@ if __name__ == "__main__":
         q_.transpose(0, 1), hel_K, hel_V, hel_O,
         name=f'hel_attention_{q_len}x{kv_len}x{nheads}',
     )
+    compiled_attn_hel_simplified = compile_hel(
+        get_hel_kernel_simplified(hel_q_len, kv_len, HEAD_DIM, nheads, HEL_TILE_M, HEL_TILE_N, HEL_STAGES, q_stages=1),
+        q_.transpose(0, 1), hel_K, hel_V, hel_O,
+        name=f'hel_attention_simplified_{q_len}x{kv_len}x{nheads}',
+    )
 
     # helion loads the config tuned by demo/helion/attention_decode_autotune.py
     compiled_attn_helion = Attention.compile(
@@ -272,9 +292,10 @@ if __name__ == "__main__":
         ("attn_cdsl",            CDSLAttention),
         ('attn_cdsl_splitk',     CDSLAttentionSplitK),
         ('attn_hel',             HelAttention),
+        ('attn_hel_simplified',  HelAttentionSimplified),
         ('attn_helion',          HelionAttention),
     ]:
-        cK, cV = make_hel_cache() if name == 'attn_hel' else make_cache()
+        cK, cV = make_hel_cache() if name in ('attn_hel', 'attn_hel_simplified') else make_cache()
         baseline = cls(cache_K=cK, cache_V=cV)
         if name == 'attn_cdsl':
             baseline = baseline.with_kernel(compiled_attn)
@@ -282,6 +303,8 @@ if __name__ == "__main__":
             baseline = baseline.with_kernel(compiled_attn_splitk, compiled_attn_reduce)
         elif name == 'attn_hel':
             baseline = baseline.with_kernel(compiled_attn_hel)
+        elif name == 'attn_hel_simplified':
+            baseline = baseline.with_kernel(compiled_attn_hel_simplified)
         elif name == 'attn_helion':
             baseline = baseline.with_kernel(compiled_attn_helion)
         pairs.append((name, baseline))
