@@ -10,6 +10,7 @@ from triton.testing import do_bench
 from compiler_2.kernels.hel.rmsnorm_linear import get_kernel as get_c2_kernel
 from c2_utils import compile_hel
 from helion_utils.kernel_runner import RMSNormLinear
+from bench_kernels.tilelang.tilelang_rmsnorm_linear import rmsnorm_matmul_persistent as tilelang_kernel
 
 """
 RMSNorm + Linear
@@ -95,9 +96,9 @@ if __name__ == "__main__":
 
     p = ProfilingJob(
         "rmsnorm_lin",
-        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, 'trt': trt_runner, 'c2': c2_kernel_fn, 'helion': helion_kernel, 'max': torch_gemm},
+        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, 'trt': trt_runner, 'c2': c2_kernel_fn, 'helion': helion_kernel, 'tilelang': tilelang_kernel, 'max': torch_gemm},
         args=prob_args,
-        arg_mask={"torch": (0, 1, 3), "cutedsl": (0, 1, 3), "trt": (0, 1), 'max': (0, 1), 'c2': (0, 1), 'helion': (0, 1, 3)},
+        arg_mask={"torch": (0, 1, 3), "cutedsl": (0, 1, 3), "trt": (0, 1), 'max': (0, 1), 'c2': (0, 1), 'helion': (0, 1, 3), 'tilelang': (0, 1, 3)},
         baseline="torch",
         ref="torch")
     

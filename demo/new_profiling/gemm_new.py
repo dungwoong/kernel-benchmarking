@@ -8,7 +8,7 @@ from cdsl_fn_utils import compile_cutedsl
 from compiler_2.kernels.hel.gemm import get_kernel as get_c2_kernel
 from c2_utils import compile_hel
 from helion_utils.kernel_runner import Matmul
-
+from bench_kernels.tilelang.tilelang_matmul import matmul_persistent as tilelang_mm
 """
 Profiles torch gemm vs cutedsl gemm vs compiler_2's autotuned gemm
 
@@ -59,9 +59,9 @@ if __name__ == "__main__":
 
     p = ProfilingJob(
         "gemm",
-        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, "c2": c2_kernel_fn, "helion": helion_kernel},
+        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, "c2": c2_kernel_fn, "helion": helion_kernel, "tilelang": tilelang_mm},
         args=prob_args,
-        arg_mask={"torch": (0, 1), "cutedsl": (0, 1), "c2": (0, 1), "helion": (0, 1)},
+        arg_mask={"torch": (0, 1), "cutedsl": (0, 1), "c2": (0, 1), "helion": (0, 1), "tilelang": (0, 1)},
         baseline="torch",
         ref="torch")
 

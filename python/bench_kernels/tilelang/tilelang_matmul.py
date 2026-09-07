@@ -3,13 +3,10 @@ import tilelang
 import tilelang.language as T
 from tilelang.carver.arch import driver
 
-from triton.testing import do_bench
-import time
-
 
 @tilelang.jit
 def matmul_persistent(
-    A, B, block_M=128, block_N=256, block_K=64, threads=256, num_stages=3, dtype=T.float16, accum_dtype=T.float32, use_persistent_primitive=True
+    A, B, block_M=128, block_N=256, block_K=64, threads=256, num_stages=3, dtype=T.bfloat16, accum_dtype=T.float32, use_persistent_primitive=True
 ):
     M, N, K = T.const("M, N, K")
 
@@ -56,18 +53,3 @@ def matmul_persistent(
                     T.copy(C_shared, C[bx * block_M, by * block_N])
 
     return C
-
-
-M = N = K = 4096
-a = torch.randn((M, K), device="cuda", dtype=torch.float16)
-b = torch.randn((N, K), device="cuda", dtype=torch.float16)
-c = matmul_persistent(a, b)
-torch.testing.assert_close(c, a @ b.t(), rtol=1e-2, atol=1e-2)
-print("GEMM passed.")
-
-time.sleep(2)
-torch_ms = do_bench(lambda: a @ b.t())
-time.sleep(2)
-tilelang_ms = do_bench(lambda: matmul_persistent(a, b))
-
-print(f'{torch_ms=}, {tilelang_ms=}, {torch_ms/tilelang_ms}')

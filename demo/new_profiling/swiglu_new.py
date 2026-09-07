@@ -12,6 +12,8 @@ from compiler_2.kernels.hel.swiglu import get_kernel as get_c2_kernel
 from c2_utils import compile_hel
 from helion_utils.kernel_runner import SwiGLU
 
+from bench_kernels.tilelang.tilelang_swiglu import swiglu_persistent as tilelang_kernel
+
 """
 Profiles torch gemm vs cutedsl gemm
 
@@ -80,9 +82,9 @@ if __name__ == "__main__":
 
     p = ProfilingJob(
         "swiglu",
-        kernels={"cutedsl": cdsl_kernel, "torch": torch_swiglu, "tensorrt": trt_runner, "c2": c2_kernel_fn, "helion": helion_kernel, "max": torch_gemm},
+        kernels={"cutedsl": cdsl_kernel, "torch": torch_swiglu, "tensorrt": trt_runner, "c2": c2_kernel_fn, "helion": helion_kernel, "tilelang": tilelang_kernel, "max": torch_gemm},
         args=prob_args,
-        arg_mask={"torch": (0, 1, 2), "cutedsl": (0, 1, 2), "tensorrt": (0, 1, 2), "max": (0, 1, 2), "c2": (0, 1, 2), "helion": (0, 1, 2)},
+        arg_mask={"torch": (0, 1, 2), "cutedsl": (0, 1, 2), "tensorrt": (0, 1, 2), "max": (0, 1, 2), "c2": (0, 1, 2), "helion": (0, 1, 2), "tilelang": (0, 1, 2)},
         baseline="torch",
         ref="torch")
     
