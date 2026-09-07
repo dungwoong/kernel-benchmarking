@@ -3,6 +3,7 @@ import tilelang
 import tilelang.language as T
 from tilelang.carver.arch import driver
 
+# NOTE: tested loading X into registers vs SMEM, SMEM is better
 @tilelang.jit
 def swiglu_persistent(
     X, W1, W2, block_M=128, block_N=128, block_K=64, threads=256, num_stages=3,
