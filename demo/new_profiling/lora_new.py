@@ -10,6 +10,7 @@ from baselines.lora import LoraModule
 from compiler_2.kernels.hel.lora import get_kernel as get_c2_kernel
 from c2_utils import compile_hel
 from helion_utils.kernel_runner import LoRA
+from bench_kernels.tilelang.tilelang_lora import lora_launcher as tilelang_kernel
 
 """
 LoRA, uses lora_dim=16
@@ -72,9 +73,9 @@ if __name__ == "__main__":
 
     p = ProfilingJob(
         "lora",
-        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, 'trt': trt_runner, 'c2': c2_kernel_fn, 'helion': helion_kernel},
+        kernels={"cutedsl": cdsl_kernel, "torch": torch_kernel, 'trt': trt_runner, 'c2': c2_kernel_fn, 'tilelang': tilelang_kernel, 'helion': helion_kernel},
         args=prob_args,
-        arg_mask={"torch": (0, 1, 2, 3), "cutedsl": (0, 1, 2, 3), 'c2': (0, 1, 2, 3), 'helion': (0, 1, 2, 3)},
+        arg_mask={"torch": (0, 1, 2, 3), "cutedsl": (0, 1, 2, 3), 'c2': (0, 1, 2, 3), 'helion': (0, 1, 2, 3), 'tilelang': (0, 1, 2, 3)},
         baseline="torch",
         ref="torch")
     
