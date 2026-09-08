@@ -32,7 +32,7 @@ def lora_matmul_persistent(
         C_shared = T.alloc_shared((block_M, block_N), dtype)
 
         XA_shared = T.alloc_shared((block_M, R), dtype)   # NEW: lora activation tile
-        XA_local = T.alloc_fragment((block_M, R), dtype)  # NEW: register copy for gemm operand
+        # XA_local = T.alloc_fragment((block_M, R), dtype)  # NEW: register copy for gemm operand
         B_shared = T.alloc_shared((block_N, R), dtype)    # NEW: lora "up" weight tile
 
         if use_persistent_primitive:
@@ -47,9 +47,9 @@ def lora_matmul_persistent(
 
                 # second accumulation: (xA) @ B^T, added into the same C_local  # NEW
                 T.copy(XA[bx * block_M, 0], XA_shared)
-                T.copy(XA_shared, XA_local)
+                # T.copy(XA_shared, XA_local)
                 T.copy(B[by * block_N, 0], B_shared)
-                T.gemm(XA_local, B_shared, C_local, transpose_B=True,
+                T.gemm(XA_shared, B_shared, C_local, transpose_B=True,
                        policy=T.GemmWarpPolicy.FullRow)
 
                 T.copy(C_local, C_shared)
@@ -70,9 +70,9 @@ def lora_matmul_persistent(
                                policy=T.GemmWarpPolicy.FullRow)
 
                     T.copy(XA[bx * block_M, 0], XA_shared)
-                    T.copy(XA_shared, XA_local)
+                    # T.copy(XA_shared, XA_local)
                     T.copy(B[by * block_N, 0], B_shared)
-                    T.gemm(XA_local, B_shared, C_local, transpose_B=True,
+                    T.gemm(XA_shared, B_shared, C_local, transpose_B=True,
                            policy=T.GemmWarpPolicy.FullRow)
 
                     T.copy(C_local, C_shared)
