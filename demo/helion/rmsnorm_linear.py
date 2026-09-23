@@ -2,6 +2,8 @@ import torch
 from profile_utils import ProfilingJob, get_profiling_job_args
 from workload_shapes import RMSNORM_LINEAR_ARGS_NT
 from helion_utils.kernel_runner import RMSNormLinear
+import triton_bundle
+triton_bundle.install("kernel_bundles", only="_helion_rmsnorm_lin_kernel")
 
 torch.manual_seed(18)
 
@@ -20,7 +22,7 @@ if __name__ == '__main__':
     args = get_profiling_job_args()
     prob_args = RMSNORM_LINEAR_ARGS_NT.with_config(args.config)
     compiled_rmsnorm_lin = RMSNormLinear.compile(*prob_args.tensors((0, 1, 3)))
-    RMSNormLinear.dump_ir(compiled_rmsnorm_lin, prob_args.tensors((0, 1, 3)))
+    # RMSNormLinear.dump_ir(compiled_rmsnorm_lin, prob_args.tensors((0, 1, 3)))
 
     p = ProfilingJob(
         "rmsnorm_lin",
