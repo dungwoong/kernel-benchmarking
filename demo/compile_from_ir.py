@@ -13,7 +13,7 @@ import sys
 import torch
 import triton
 
-IR_EXT = "ttgir"          # "ttgir" or "ttir"
+IR_EXT = "ttir"          # "ttgir" or "ttir"
 M = N = K = 4096
 EPS = 1e-6
 

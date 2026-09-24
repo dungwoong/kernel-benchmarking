@@ -1,3 +1,8 @@
+# OTHER DUMPS
+dump/*
+kernel_bundles/*
+triton_dump/*
+
 python/helion_utils/ir_dumps/*
 slurm_outputs/*
 .cache/
