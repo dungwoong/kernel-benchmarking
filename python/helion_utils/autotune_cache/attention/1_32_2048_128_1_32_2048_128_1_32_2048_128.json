@@ -1,7 +1,7 @@
 {
   "block_sizes": [
     1,
-    128,
+    32,
     64
   ],
   "loop_orders": [
@@ -15,31 +15,30 @@
   ],
   "range_unroll_factors": [
     0,
-    0
+    4
   ],
   "range_warp_specializes": [],
   "range_num_stages": [
     0,
-    3
+    2
   ],
   "range_multi_buffers": [
     null,
-    null
+    true
   ],
   "range_flattens": [
     null,
-    false
+    true
   ],
   "load_eviction_policies": [
-    "",
+    "first",
     "",
     ""
   ],
-  "num_warps": 4,
-  "num_stages": 1,
+  "num_warps": 2,
+  "num_stages": 2,
   "indexing": [
-    "tensor_descriptor",
-    "tensor_descriptor",
+    "pointer",
     "pointer",
     "tensor_descriptor",
     "pointer"
