@@ -12,6 +12,8 @@ Each compile of that kernel then writes, in `workdir`:
 
     <kernel>.<cut>.orig.mlir    module right BEFORE the cut pass (read-only reference, overwritten every run)
     <kernel>.<cut>.final.ttgir  final TTGIR after the whole pipeline (to diff / check your edit survived)
+    <kernel>.<cut>.llir         LLVM IR emitted for this compile (ttgir -> llir lowering output)
+    <kernel>.<cut>.ptx          PTX emitted for this compile
 
 and if this file exists it is parsed and used instead of the .orig module:
 
@@ -20,6 +22,13 @@ and if this file exists it is parsed and used instead of the .orig module:
 Cut names are the pass names from the MLIR_ENABLE_DUMP headers. Passes that appear more than once
 take an occurrence suffix: "tritongpu-remove-layout-conversions#2". cut="end" pauses after the last
 TTGIR pass (i.e. edit the final TTGIR before LLVM lowering). `python ttgir_hook.py` lists the names.
+
+Pass `trace=<path>` to install() to dump the module after EVERY pass (pre- and post-cut) plus the
+edit-file swap-in, all into that one txt file, in order - useful when MLIR_ENABLE_DUMP's own output
+is hard to correlate with what this hook is doing. Pass `trace_pre=False` to skip the pre-cut passes
+in that file and start logging at the edit-file swap-in instead (or at the first post-cut pass, if
+no .edit.mlir exists yet) - handy once you already trust the pre-cut half and only care what happens
+to your edit.
 
 Edits change the compile-cache key automatically; TRITON_ALWAYS_COMPILE=1 is still a good idea.
 """
@@ -32,7 +41,8 @@ from triton._C.libtriton import ir, passes, nvidia
 from triton.backends.compiler import Language
 
 _THIS_FILE = pathlib.Path(__file__)
-_CFG = {"cut": "tritongpu-coalesce", "kernel": None, "workdir": "ttgir_hook"}
+_CFG = {"cut": "tritongpu-coalesce", "kernel": None, "workdir": "ttgir_hook", "skip_post": set(),
+        "trace": None, "trace_pre": True}
 
 
 # --------------------------------------------------------------------------------------------
@@ -131,20 +141,39 @@ def _split(labeled, cut):
     if cut not in names:
         raise ValueError(f"cut '{cut}' not in pass list:\n  " + "\n  ".join(names))
     i = names.index(cut)
-    return labeled[:i], labeled[i:]
+    # cut AFTER this runs
+    return labeled[:i+1], labeled[i+1:]
 
 
-def _run(mod, labeled, tag):
+def _trace_write(trace_path, header, mod):
+    if trace_path is None:
+        return
+    with open(trace_path, "a") as f:
+        f.write(f"\n// ===== {header} =====\n")
+        f.write(mod.str())
+        f.write("\n")
+
+
+def _run(mod, labeled, tag, trace_path=None):
     """
-    Run passes in <labeled> on mod
+    Run passes in <labeled> on mod. If trace_path is given, run and dump one pass at a time
+    instead of batching them into a single pass-manager run, so every stage lands in the file.
     """
     if not labeled:
         return
-    pm = ir.pass_manager(mod.context)
-    pm.enable_debug()
-    for _, fn in labeled:
+    if trace_path is None:
+        pm = ir.pass_manager(mod.context)
+        pm.enable_debug()
+        for _, fn in labeled:
+            fn(pm)
+        pm.run(mod, tag)
+        return
+
+    for name, fn in labeled:
+        pm = ir.pass_manager(mod.context)
         fn(pm)
-    pm.run(mod, tag)
+        pm.run(mod, tag)
+        _trace_write(trace_path, f"{tag}: after {name}", mod)
 
 
 def _paths(kernel):
@@ -153,8 +182,9 @@ def _paths(kernel):
     return d / f"{stem}.orig.mlir", d / f"{stem}.edit.mlir", d / f"{stem}.final.ttgir"
 
 
-def _make_ttgir_hooked(backend, mod, metadata, opt, capability):
+def _make_ttgir_hooked(backend, mod, metadata, opt, capability, kernel_holder):
     kernel = mod.get_entry_func_name()
+    kernel_holder["name"] = kernel  # remember it so the ptx stage can name its file too
 
     # Proceed normally if kernel name doesn't match
     if _CFG["kernel"] is not None and kernel != _CFG["kernel"]:
@@ -166,12 +196,25 @@ def _make_ttgir_hooked(backend, mod, metadata, opt, capability):
     # dump_enabled must match what enable_debug() reports (the pipeliner / warpspec use it)
     dump_enabled = ir.pass_manager(mod.context).enable_debug()
     pre, post = _split(_ttgir_passes(opt, capability, dump_enabled), _CFG["cut"])
+    if _CFG["skip_post"]:
+        dropped = [n for n, _ in post if n in _CFG["skip_post"]]
+        post = [(n, fn) for n, fn in post if n not in _CFG["skip_post"]]
+        if dropped:
+            print(f"[ttgir_hook] {kernel}: skipping post-cut passes {dropped}")
 
     orig, edit, final = _paths(kernel)
     orig.parent.mkdir(parents=True, exist_ok=True)
 
-    # Run the pre-split passes
-    _run(mod, pre, "make_ttgir_pre")
+    trace_path = pathlib.Path(_CFG["trace"]) if _CFG.get("trace") else None
+    trace_pre = _CFG.get("trace_pre", True)
+    if trace_path is not None:
+        trace_path.parent.mkdir(parents=True, exist_ok=True)
+        trace_path.write_text("")  # fresh trace for this compile
+        if trace_pre:
+            _trace_write(trace_path, "start (before pre-cut passes)", mod)
+
+    # Run the pre-split passes (only traced if trace_pre is set)
+    _run(mod, pre, "make_ttgir_pre", trace_path if trace_pre else None)
     orig.write_text(mod.str())
     print(f"[ttgir_hook] {kernel}: wrote module before '{_CFG['cut']}' -> {orig}")
 
@@ -183,13 +226,46 @@ def _make_ttgir_hooked(backend, mod, metadata, opt, capability):
         # `.context` is a plain Python attribute that Triton's compiler attaches to modules
         # (see IRSource.make_ir); a freshly parsed module doesn't have it, so set it.
         mod.context = ctx
+        _trace_write(trace_path, f"swapped in EDITED module: {edit}", mod)
 
-    _run(mod, post, "make_ttgir_post")
+    _run(mod, post, "make_ttgir_post", trace_path)
     final.write_text(mod.str())
     print(f"[ttgir_hook] {kernel}: final TTGIR -> {final}")
+    if trace_path is not None:
+        print(f"[ttgir_hook] {kernel}: wrote per-pass trace -> {trace_path}")
 
     metadata["tensordesc_meta"] = mod.get_tensordesc_metadata()
     return mod
+
+
+def _make_ptx_hooked(orig_ptx_fn, src, metadata, kernel_holder):
+    """Run the backend's normal ptx stage, then also dump the PTX text to workdir."""
+    ptx = orig_ptx_fn(src, metadata)
+
+    kernel = kernel_holder.get("name")
+    if kernel is not None and (_CFG["kernel"] is None or kernel == _CFG["kernel"]):
+        d = pathlib.Path(_CFG["workdir"])
+        d.mkdir(parents=True, exist_ok=True)
+        out = d / f"{kernel}.{_CFG['cut']}.ptx"
+        out.write_text(ptx)
+        print(f"[ttgir_hook] {kernel}: wrote PTX -> {out}")
+
+    return ptx
+
+
+def _make_llir_hooked(orig_llir_fn, src, metadata, kernel_holder):
+    """Run the backend's normal llir stage, then also dump the LLVM IR text to workdir."""
+    llir = orig_llir_fn(src, metadata)
+
+    kernel = kernel_holder.get("name")
+    if kernel is not None and (_CFG["kernel"] is None or kernel == _CFG["kernel"]):
+        d = pathlib.Path(_CFG["workdir"])
+        d.mkdir(parents=True, exist_ok=True)
+        out = d / f"{kernel}.{_CFG['cut']}.llir"
+        out.write_text(str(llir))
+        print(f"[ttgir_hook] {kernel}: wrote LLIR -> {out}")
+
+    return llir
 
 
 def _key():
@@ -208,14 +284,21 @@ def _hook(self=None, stages=None, options=None, language=None, capability=None):
     if all(a is None for a in (stages, options, language, capability)):
         return _key()
     if language == Language.TRITON:
-        stages["ttgir"] = lambda src, metadata: _make_ttgir_hooked(self, src, metadata, options, capability)
+        kernel_holder = {}
+        stages["ttgir"] = lambda src, metadata: _make_ttgir_hooked(
+            self, src, metadata, options, capability, kernel_holder)
+        orig_llir = stages["llir"]
+        stages["llir"] = lambda src, metadata: _make_llir_hooked(orig_llir, src, metadata, kernel_holder)
+        orig_ptx = stages["ptx"]
+        stages["ptx"] = lambda src, metadata: _make_ptx_hooked(orig_ptx, src, metadata, kernel_holder)
     return _key()
 
 
-def install(cut="tritongpu-coalesce", kernel=None, workdir="ttgir_hook"):
-    _CFG.update(cut=cut, kernel=kernel, workdir=workdir)
+def install(cut="tritongpu-coalesce", kernel=None, workdir="ttgir_hook", skip_post=(), trace=None, trace_pre=True):
+    _CFG.update(cut=cut, kernel=kernel, workdir=workdir, skip_post=set(skip_post), trace=trace, trace_pre=trace_pre)
     knobs.runtime.add_stages_inspection_hook = _hook
-    print(f"[ttgir_hook] installed: cut={cut} kernel={kernel} workdir={workdir}")
+    print(f"[ttgir_hook] installed: cut={cut} kernel={kernel} workdir={workdir} "
+          f"skip_post={skip_post} trace={trace} trace_pre={trace_pre}")
 
 
 def uninstall():

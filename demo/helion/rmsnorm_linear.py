@@ -6,7 +6,27 @@ from helion_utils.kernel_runner import RMSNormLinear
 # triton_bundle.install("kernel_bundles", only="_helion_rmsnorm_lin_kernel")
 
 import ttgir_hook
-ttgir_hook.install(cut="tritongpu-coalesce", kernel="_helion_rmsnorm_lin_kernel", workdir="kernel_bundles/ttgir_hook")
+ttgir_hook.install( # requires shape 1
+    cut="tritongpu-accelerate-matmul", 
+    kernel="_helion_rmsnorm_lin_kernel", 
+    workdir="demo_ttgir/ttgir_hook_rmsnorm_linear", 
+    skip_post={"tritongpu-remove-layout-conversions#2", "tritongpu-remove-layout-conversions#3"}, 
+    trace="demo_ttgir/ttgir_hook_rmsnorm_linear/rmsnorm_linear_helion_trace.log", 
+    trace_pre=False)
+# ttgir_hook.install( # requires shape 7
+#     cut="tritongpu-accelerate-matmul", 
+#     kernel="_helion_rmsnorm_lin_kernel", 
+#     workdir="kernel_bundles/ttgir_hook_rmsnorm_linear_7", 
+#     skip_post={"tritongpu-remove-layout-conversions#2", "tritongpu-remove-layout-conversions#3"}, 
+#     trace="kernel_bundles/ttgir_hook_rmsnorm_linear_7/rmsnorm_linear_helion_trace.log", 
+#     trace_pre=False)
+# ttgir_hook.install(
+#     cut="canonicalize#4", 
+#     kernel="_helion_rmsnorm_lin_kernel", 
+#     workdir="kernel_bundles/ttgir_hook", 
+#     # skip_post={"tritongpu-remove-layout-conversions#2", "tritongpu-remove-layout-conversions#3"}, 
+#     trace="kernel_bundles/ttgir_hook/rmsnorm_linear_helion_trace.log", 
+#     trace_pre=False)
 
 
 torch.manual_seed(18)
