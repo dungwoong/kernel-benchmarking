@@ -10,19 +10,23 @@
 #loc25 = loc("/tmp/torchinductor_wangke61/gk/cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py":65:29)
 #mma = #ttg.nvidia_mma<{versionMajor = 3, versionMinor = 0, warpsPerCTA = [8, 1], instrShape = [16, 256, 16]}>
 
-#linear_guess = #ttg.linear<{register = [[0,1],[8,0],[0,8],[0,16],[0,32]], lane = [[0,2],[0,4],[1,0],[2,0],[4,0]], warp = [[16,0],[32,0],[64,0]], block = []}>
-#linear_guess_3d = #ttg.linear<{register = [[8,0,0],[0,4,0],[0,8,0],[0,16,0],[0,0,1]], lane = [[0,1,0],[0,2,0],[1,0,0],[2,0,0],[4,0,0]], warp = [[16,0,0],[32,0,0],[64,0,0]], block = []}>
-#linear_guess_2d = #ttg.linear<{register = [[8,0],[0,4],[0,8],[0,16]], lane = [[0,1],[0,2],[1,0],[2,0],[4,0]], warp = [[16,0],[32,0],[64,0]], block = []}>
-#linear_guess_split = #ttg.linear<{register = [[8,0,0],[0,1,0],[0,2,0],[0,4,0]], lane = [[0,0,1],[0,0,2],[1,0,0],[2,0,0],[4,0,0]], warp = [[16,0,0],[32,0,0],[64,0,0]], block = []}>
+// 128x16 tile → tiled to 128x64 (adds regs [0,16],[0,32])
+#linear_guess = #ttg.linear<{
+  register = [[0,1],[8,0],[0,8]],
+  lane     = [[0,2],[0,4],[1,0],[2,0],[4,0]],
+  warp     = [[16,0],[32,0],[64,0]], block = []}>
 
-// reg bit0 = the bf16 pair that is physically packed in one 32-bit reg (col+1 / dim3).
-// Keeping it at bit0 lets the reduce lowering pack/unpack for free (no PRMT/mov).
+// 128x2x4x2 tile (= 128x16) → tiled to 128x8x4x2 (adds regs [0,2,0,0],[0,4,0,0])
 #linear_guess_r = #ttg.linear<{
-  register = [[0,0,0,1], [8,0,0,0], [0,1,0,0], [0,2,0,0], [0,4,0,0]],
-  lane     = [[0,0,1,0], [0,0,2,0], [1,0,0,0], [2,0,0,0], [4,0,0,0]],
-  warp     = [[16,0,0,0], [32,0,0,0], [64,0,0,0]],
-  block    = []
-}>
+  register = [[0,0,0,1],[8,0,0,0],[0,1,0,0]],
+  lane     = [[0,0,1,0],[0,0,2,0],[1,0,0,0],[2,0,0,0],[4,0,0,0]],
+  warp     = [[16,0,0,0],[32,0,0,0],[64,0,0,0]], block = []}>
+
+// 128x8x2 tile (= 128x16) → tiled to 128x32x2 (adds regs [0,8,0],[0,16,0])
+#linear_guess_3d = #ttg.linear<{
+  register = [[8,0,0],[0,4,0],[0,0,1]],
+  lane     = [[0,1,0],[0,2,0],[1,0,0],[2,0,0],[4,0,0]],
+  warp     = [[16,0,0],[32,0,0],[64,0,0]], block = []}>
 
 #dot0 = #ttg.dot_op<{opIdx = 0, parent = #mma, kWidth = 2}>
 

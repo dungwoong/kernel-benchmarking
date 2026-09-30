@@ -1,12 +1,12 @@
-#linear = #ttg.linear<{register = [[0, 0, 0, 1], [8, 0, 0, 0], [0, 1, 0, 0], [0, 2, 0, 0], [0, 4, 0, 0]], lane = [[0, 0, 1, 0], [0, 0, 2, 0], [1, 0, 0, 0], [2, 0, 0, 0], [4, 0, 0, 0]], warp = [[16, 0, 0, 0], [32, 0, 0, 0], [64, 0, 0, 0]], block = []}>
-#linear1 = #ttg.linear<{register = [[0, 1], [8, 0], [0, 8], [0, 16], [0, 32]], lane = [[0, 2], [0, 4], [1, 0], [2, 0], [4, 0]], warp = [[16, 0], [32, 0], [64, 0]], block = []}>
+#linear = #ttg.linear<{register = [[0, 0, 0, 1], [8, 0, 0, 0], [0, 1, 0, 0]], lane = [[0, 0, 1, 0], [0, 0, 2, 0], [1, 0, 0, 0], [2, 0, 0, 0], [4, 0, 0, 0]], warp = [[16, 0, 0, 0], [32, 0, 0, 0], [64, 0, 0, 0]], block = []}>
+#linear1 = #ttg.linear<{register = [[0, 1], [8, 0], [0, 8]], lane = [[0, 2], [0, 4], [1, 0], [2, 0], [4, 0]], warp = [[16, 0], [32, 0], [64, 0]], block = []}>
 #loc = loc("/tmp/torchinductor_wangke61/gk/cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py":20:1)
-#loc25 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":87:16)
-#loc26 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":87:26)
-#loc30 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":93:16)
-#loc31 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":93:26)
-#loc37 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":107:14)
-#loc38 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":107:23)
+#loc25 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":91:16)
+#loc26 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":91:26)
+#loc30 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":97:16)
+#loc31 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":97:26)
+#loc37 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":111:14)
+#loc38 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":111:23)
 #mma = #ttg.nvidia_mma<{versionMajor = 3, versionMinor = 0, warpsPerCTA = [8, 1], instrShape = [16, 256, 16]}>
 #shared = #ttg.nvmma_shared<{swizzlingByteWidth = 128, transposed = false, elementBitWidth = 16}>
 #shared1 = #ttg.swizzled_shared<{vec = 1, perPhase = 1, maxPhase = 1, order = [0]}>
@@ -108,12 +108,12 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 8 : i32, ttg.targ
         %acc_37:3 = ttng.warp_group_dot_wait %acc, %xTile_33, %load_1_36 {pendings = 1 : i32} : tensor<128x256xf32, #mma>, !ttg.memdesc<128x64xbf16, #shared, #smem, mutable>, !ttg.memdesc<64x256xbf16, #shared2, #smem, mutable> loc(#loc65)
         %7 = arith.mulf %6, %6 : tensor<128x8x4x2xbf16, #linear> loc(#loc23)
         %8 = "tt.reduce"(%7) <{axis = 1 : i32}> ({
-        ^bb0(%arg11: bf16 loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":87:16), %arg12: bf16 loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":87:26)):
+        ^bb0(%arg11: bf16 loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":91:16), %arg12: bf16 loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":91:26)):
           %10 = arith.addf %arg11, %arg12 : bf16 loc(#loc27)
           tt.reduce.return %10 : bf16 loc(#loc28)
         }) : (tensor<128x8x4x2xbf16, #linear>) -> tensor<128x4x2xbf16, #ttg.slice<{dim = 1, parent = #linear}>> loc(#loc24)
         %9 = "tt.reduce"(%8) <{axis = 2 : i32}> ({
-        ^bb0(%arg11: bf16 loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":93:16), %arg12: bf16 loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":93:26)):
+        ^bb0(%arg11: bf16 loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":97:16), %arg12: bf16 loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":97:26)):
           %10 = arith.addf %arg11, %arg12 : bf16 loc(#loc32)
           tt.reduce.return %10 : bf16 loc(#loc33)
         }) : (tensor<128x4x2xbf16, #ttg.slice<{dim = 1, parent = #linear}>>) -> tensor<128x4xbf16, #ttg.slice<{dim = 2, parent = #ttg.slice<{dim = 1, parent = #linear}>}>> loc(#loc29)
@@ -145,7 +145,7 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 8 : i32, ttg.targ
       ttg.local_dealloc %load_1 : !ttg.memdesc<3x256x64xbf16, #shared, #smem, mutable> loc(#loc74)
       ttg.local_dealloc %xTile : !ttg.memdesc<3x128x64xbf16, #shared, #smem, mutable> loc(#loc74)
       %3 = "tt.reduce"(%sum_acc_17#1) <{axis = 1 : i32}> ({
-      ^bb0(%arg5: f32 loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":107:14), %arg6: f32 loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":107:23)):
+      ^bb0(%arg5: f32 loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":111:14), %arg6: f32 loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":111:23)):
         %5 = arith.addf %arg5, %arg6 : f32 loc(#loc39)
         tt.reduce.return %5 : f32 loc(#loc40)
       }) : (tensor<128x4xf32, #ttg.slice<{dim = 2, parent = #ttg.slice<{dim = 1, parent = #linear}>}>>) -> tensor<128xf32, #ttg.slice<{dim = 1, parent = #ttg.slice<{dim = 2, parent = #ttg.slice<{dim = 1, parent = #linear}>}>}>> loc(#loc36)
@@ -186,23 +186,23 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 8 : i32, ttg.targ
 #loc16 = loc("/tmp/torchinductor_wangke61/gk/cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py":58:21)
 #loc17 = loc("/tmp/torchinductor_wangke61/gk/cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py":60:33)
 #loc18 = loc("/tmp/torchinductor_wangke61/gk/cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py":52:9)
-#loc19 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":73:24)
-#loc20 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":74:20)
+#loc19 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":77:24)
+#loc20 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":78:20)
 #loc21 = loc("/tmp/torchinductor_wangke61/gk/cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py":60:22)
 #loc22 = loc("/tmp/torchinductor_wangke61/gk/cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py":61:19)
-#loc23 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":83:16)
-#loc24 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":86:17)
-#loc27 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":88:18)
-#loc28 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":89:13)
-#loc29 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":92:17)
-#loc32 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":94:18)
-#loc33 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":95:13)
+#loc23 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":87:16)
+#loc24 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":90:17)
+#loc27 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":92:18)
+#loc28 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":93:13)
+#loc29 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":96:17)
+#loc32 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":98:18)
+#loc33 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":99:13)
 #loc34 = loc("/tmp/torchinductor_wangke61/gk/cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py":66:19)
 #loc35 = loc("/tmp/torchinductor_wangke61/gk/cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py":67:23)
-#loc36 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":106:20)
-#loc39 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":108:14)
-#loc40 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":109:9)
-#loc41 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":111:16)
+#loc36 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":110:20)
+#loc39 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":112:14)
+#loc40 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":113:9)
+#loc41 = loc("demo_ttgir/ttgir_hook_rmsnorm_linear/_helion_rmsnorm_lin_kernel.tritongpu-accelerate-matmul.edit.mlir":115:16)
 #loc42 = loc("/tmp/torchinductor_wangke61/gk/cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py":70:15)
 #loc43 = loc("/tmp/torchinductor_wangke61/gk/cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py":72:15)
 #loc44 = loc("/tmp/torchinductor_wangke61/gk/cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py":74:21)
