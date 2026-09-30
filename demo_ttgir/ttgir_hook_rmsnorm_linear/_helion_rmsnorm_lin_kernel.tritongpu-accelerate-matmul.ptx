@@ -608,6 +608,7 @@ $L__BB0_3:                              //   Parent Loop BB0_2 Depth=1
 	shl.b32 	%r103, %r390, 14;
 	add.s32 	%r104, %r39, %r103;
 	add.s32 	%r105, %r104, 163840;
+	.loc	1 73 24                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:73:24
 	add.s32 	%r106, %r104, %r5;
 	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r107, %r108, %r109, %r110}, [%r106+163840];
 	add.s32 	%r111, %r104, %r6;
@@ -687,36 +688,33 @@ $L__BB0_3:                              //   Parent Loop BB0_2 Depth=1
 	wgmma.wait_group.sync.aligned 1;
 
 	// end inline asm
-	.loc	1 123 16                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:123:16
+	.loc	1 86 17                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:86:17
 	mul.bf16x2 	%r134, %r109, %r109;
-	mul.bf16x2 	%r135, %r110, %r110;
-	mul.bf16x2 	%r136, %r114, %r114;
-	mul.bf16x2 	%r137, %r115, %r115;
-	mul.bf16x2 	%r138, %r119, %r119;
-	mul.bf16x2 	%r139, %r120, %r120;
-	mul.bf16x2 	%r140, %r124, %r124;
+	mul.bf16x2 	%r135, %r114, %r114;
+	mul.bf16x2 	%r136, %r119, %r119;
+	mul.bf16x2 	%r137, %r124, %r124;
+	mul.bf16x2 	%r138, %r110, %r110;
+	mul.bf16x2 	%r139, %r115, %r115;
+	mul.bf16x2 	%r140, %r120, %r120;
 	mul.bf16x2 	%r141, %r125, %r125;
-	.loc	1 134 15                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:134:15
 	fma.rn.bf16x2 	%r142, %r107, %r107, %r134;
-	fma.rn.bf16x2 	%r143, %r108, %r108, %r135;
-	fma.rn.bf16x2 	%r144, %r112, %r112, %r136;
-	fma.rn.bf16x2 	%r145, %r113, %r113, %r137;
-	fma.rn.bf16x2 	%r146, %r117, %r117, %r138;
-	fma.rn.bf16x2 	%r147, %r118, %r118, %r139;
-	fma.rn.bf16x2 	%r148, %r122, %r122, %r140;
-	fma.rn.bf16x2 	%r149, %r123, %r123, %r141;
-	.loc	1 139 15                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:139:15
-	add.bf16x2 	%r150, %r142, %r144;
-	add.bf16x2 	%r151, %r143, %r145;
-	add.bf16x2 	%r152, %r146, %r148;
-	add.bf16x2 	%r153, %r147, %r149;
-	.loc	1 143 15                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:143:15
-	add.bf16x2 	%r154, %r150, %r152;
-	add.bf16x2 	%r155, %r151, %r153;
-	.loc	1 149 18                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:149:18
-	mov.b32 	{_, %rs1}, %r154;
+	fma.rn.bf16x2 	%r143, %r112, %r112, %r135;
+	fma.rn.bf16x2 	%r144, %r117, %r117, %r136;
+	fma.rn.bf16x2 	%r145, %r122, %r122, %r137;
+	add.bf16x2 	%r146, %r142, %r143;
+	add.bf16x2 	%r147, %r144, %r145;
+	add.bf16x2 	%r148, %r146, %r147;
+	fma.rn.bf16x2 	%r149, %r108, %r108, %r138;
+	fma.rn.bf16x2 	%r150, %r113, %r113, %r139;
+	fma.rn.bf16x2 	%r151, %r118, %r118, %r140;
+	fma.rn.bf16x2 	%r152, %r123, %r123, %r141;
+	add.bf16x2 	%r153, %r149, %r150;
+	add.bf16x2 	%r154, %r151, %r152;
+	add.bf16x2 	%r155, %r153, %r154;
+	.loc	1 94 18                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:94:18
+	mov.b32 	{_, %rs1}, %r148;
 	mov.b32 	%r156, {%rs1, %rs2};
-	add.bf16x2 	%r157, %r154, %r156;
+	add.bf16x2 	%r157, %r148, %r156;
 	mov.b32 	{%rs3, _}, %r157;
 	mov.b32 	{_, %rs4}, %r155;
 	mov.b32 	%r158, {%rs4, %rs5};
@@ -824,21 +822,21 @@ $L__BB0_3:                              //   Parent Loop BB0_2 Depth=1
 	@%p42 mbarrier.inval.shared::cta.b64 [%r62];
 
 	// end inline asm
-	.loc	1 160 20                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:160:20
+	.loc	1 106 20                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:106:20
 	shfl.sync.bfly.b32 	%r178, %r392, 2, 31, -1;
-	.loc	1 162 14                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:162:14
+	.loc	1 108 14                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:108:14
 	add.f32 	%r179, %r392, %r178;
-	.loc	1 160 20                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:160:20
+	.loc	1 106 20                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:106:20
 	shfl.sync.bfly.b32 	%r180, %r179, 1, 31, -1;
-	.loc	1 162 14                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:162:14
+	.loc	1 108 14                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:108:14
 	add.f32 	%r181, %r179, %r180;
-	.loc	1 160 20                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:160:20
+	.loc	1 106 20                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:106:20
 	shfl.sync.bfly.b32 	%r182, %r393, 2, 31, -1;
-	.loc	1 162 14                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:162:14
+	.loc	1 108 14                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:108:14
 	add.f32 	%r183, %r393, %r182;
-	.loc	1 160 20                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:160:20
+	.loc	1 106 20                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:106:20
 	shfl.sync.bfly.b32 	%r184, %r183, 1, 31, -1;
-	.loc	1 162 14                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:162:14
+	.loc	1 108 14                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:108:14
 	add.f32 	%r185, %r183, %r184;
 	.loc	1 71 15                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:71:15
 	fma.rn.f32 	%r186, %r181, 0f39800000, %r25;
