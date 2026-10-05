@@ -22,12 +22,6 @@
   lane     = [[0,0,1,0],[0,0,2,0],[1,0,0,0],[2,0,0,0],[4,0,0,0]],
   warp     = [[16,0,0,0],[32,0,0,0],[64,0,0,0]], block = []}>
 
-// 128x8x2 tile (= 128x16) → tiled to 128x32x2 (adds regs [0,8,0],[0,16,0])
-#linear_guess_3d = #ttg.linear<{
-  register = [[8,0,0],[0,4,0],[0,0,1]],
-  lane     = [[0,1,0],[0,2,0],[1,0,0],[2,0,0],[4,0,0]],
-  warp     = [[16,0,0],[32,0,0],[64,0,0]], block = []}>
-
 #dot0 = #ttg.dot_op<{opIdx = 0, parent = #mma, kWidth = 2}>
 
 #shared = #ttg.nvmma_shared<{swizzlingByteWidth = 128, transposed = false, elementBitWidth = 16}>
@@ -80,10 +74,7 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 8 : i32, ttg.targ
         %load_1 = tt.descriptor_load %y_desc[%offset_1, %offset_2] : !tt.tensordesc<256x64xbf16> -> tensor<256x64xbf16, #blocked> loc(#loc53)
         %load_1_9 = tt.trans %load_1 {order = array<i32: 1, 0>} : tensor<256x64xbf16, #blocked> -> tensor<64x256xbf16, #blocked2> loc(#loc54)
         %load_1_10 = ttg.local_alloc %load_1_9 : (tensor<64x256xbf16, #blocked2>) -> !ttg.memdesc<64x256xbf16, #shared1, #smem> loc(#loc54)
-        // %acc_11 = ttg.convert_layout %acc : tensor<128x256xf32, #blocked1> -> tensor<128x256xf32, #mma> loc(#loc71)
         %acc_12 = ttng.warp_group_dot %xTile_smem, %load_1_10, %acc {inputPrecision = 0 : i32} : !ttg.memdesc<128x64xbf16, #shared, #smem> * !ttg.memdesc<64x256xbf16, #shared1, #smem> -> tensor<128x256xf32, #mma> loc(#loc56)
-        // %acc_13 = ttg.convert_layout %acc_12 : tensor<128x256xf32, #mma> -> tensor<128x256xf32, #blocked1> loc(#loc56)
-        // %v_0 = arith.mulf %xTile_8_lin, %xTile_8_lin : tensor<128x64xbf16, #linear_guess> loc(#loc57)
         %v_0 = arith.mulf %xTile_r, %xTile_r : tensor<128x8x4x2xbf16, #linear_guess_r>
 
         // STAGE 1: THREAD SUM OVER 16 ELEMENTS
