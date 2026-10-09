@@ -15,30 +15,30 @@
   ],
   "range_unroll_factors": [
     0,
-    0
+    4
   ],
   "range_warp_specializes": [],
   "range_num_stages": [
     0,
-    1
+    2
   ],
   "range_multi_buffers": [
     null,
-    null
+    false
   ],
   "range_flattens": [
     null,
-    true
+    false
   ],
   "load_eviction_policies": [
-    "first",
     "",
-    ""
+    "last",
+    "last"
   ],
   "num_warps": 4,
-  "num_stages": 3,
+  "num_stages": 4,
   "indexing": [
-    "pointer",
+    "tensor_descriptor",
     "pointer",
     "pointer",
     "pointer"

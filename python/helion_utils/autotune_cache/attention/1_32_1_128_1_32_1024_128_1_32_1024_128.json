@@ -1,7 +1,7 @@
 {
   "block_sizes": [
     1,
-    1,
+    4,
     512
   ],
   "loop_orders": [
@@ -11,7 +11,7 @@
     ]
   ],
   "l2_groupings": [
-    64
+    1
   ],
   "range_unroll_factors": [
     0,
@@ -24,14 +24,14 @@
   ],
   "range_multi_buffers": [
     null,
-    false
+    true
   ],
   "range_flattens": [
     null,
-    null
+    false
   ],
   "load_eviction_policies": [
-    "last",
+    "first",
     "first",
     "first"
   ],
@@ -40,9 +40,9 @@
   "indexing": [
     "tensor_descriptor",
     "pointer",
-    "tensor_descriptor",
-    "tensor_descriptor"
+    "pointer",
+    "pointer"
   ],
   "atomic_indexing": [],
-  "pid_type": "flat"
+  "pid_type": "xyz"
 }

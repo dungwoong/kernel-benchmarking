@@ -11,40 +11,38 @@
     ]
   ],
   "l2_groupings": [
-    32
+    1
   ],
   "range_unroll_factors": [
-    4,
-    0
+    0,
+    4
   ],
   "range_warp_specializes": [],
   "range_num_stages": [
     0,
-    3
+    4
   ],
   "range_multi_buffers": [
-    false,
+    null,
     false
   ],
   "range_flattens": [
     null,
-    null
+    false
   ],
   "load_eviction_policies": [
     "first",
-    "",
+    "first",
     "last"
   ],
-  "num_warps": 8,
+  "num_warps": 4,
   "num_stages": 4,
   "indexing": [
     "tensor_descriptor",
     "tensor_descriptor",
     "tensor_descriptor",
-    "pointer"
+    "tensor_descriptor"
   ],
   "atomic_indexing": [],
-  "pid_type": "persistent_blocked",
-  "num_sm_multiplier": 8,
-  "maxnreg": 128
+  "pid_type": "xyz"
 }
