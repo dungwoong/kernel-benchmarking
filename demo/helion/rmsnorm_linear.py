@@ -10,7 +10,7 @@ ttgir_hook.install( # requires shape 1
     cut="tritongpu-accelerate-matmul", 
     kernel="_helion_rmsnorm_lin_kernel", 
     workdir="demo_ttgir/ttgir_hook_rmsnorm_linear", 
-    skip_post={"tritongpu-remove-layout-conversions#2", "tritongpu-remove-layout-conversions#3"}, 
+    # skip_post={"tritongpu-remove-layout-conversions#2", "tritongpu-remove-layout-conversions#3"}, 
     trace="demo_ttgir/ttgir_hook_rmsnorm_linear/rmsnorm_linear_helion_trace.log", 
     trace_pre=False)
 # ttgir_hook.install( # requires shape 7
