@@ -63,17 +63,17 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 8 : i32, ttg.targ
       %offset_0 = arith.muli %pid_0, %c128_i32 : i32 loc(#loc49)
       %offset_1 = arith.muli %pid_1, %c256_i32 : i32 loc(#loc50)
       %sum_acc:2 = scf.for %offset_2 = %c0_i32 to %c4096_i32 step %c64_i32 iter_args(%acc = %cst_1, %sum_acc_7 = %cst_0) -> (tensor<128x256xf32, #mma>, tensor<128x4xf32, #ttg.slice<{dim = 2, parent = #ttg.slice<{dim = 1, parent = #linear_guess_r}>}>>)  : i32 {
-        %xTile = tt.descriptor_load %x_desc[%offset_0, %offset_2] : !tt.tensordesc<128x64xbf16> -> tensor<128x64xbf16, #blocked> loc(#loc52)
+        %xTile = tt.descriptor_load %x_desc[%offset_0, %offset_2] : !tt.tensordesc<128x64xbf16> -> tensor<128x64xbf16, #linear_guess> loc(#loc52)
         // %xTile_8_lin = ttg.convert_layout %xTile : tensor<128x64xbf16, #blocked> -> tensor<128x64xbf16, #linear_guess>
 
         // want to try making an equivalent linear layout
-        %xTile_smem = ttg.local_alloc %xTile : (tensor<128x64xbf16, #blocked>) -> !ttg.memdesc<128x64xbf16, #shared, #smem> loc(#loc52)
+        %xTile_smem = ttg.local_alloc %xTile : (tensor<128x64xbf16, #linear_guess>) -> !ttg.memdesc<128x64xbf16, #shared, #smem> loc(#loc52)
         // You can directly do local load, this is caught by RemoveLayoutConversions
         // %xTile_8 = ttg.local_load %xTile_smem : !ttg.memdesc<128x64xbf16, #shared, #smem> -> tensor<128x64xbf16, #dot0> loc(#loc52)
         // %xTile_8_lin = ttg.convert_layout %xTile_8 : tensor<128x64xbf16, #dot0> -> tensor<128x64xbf16, #linear_guess>
 
-        %xTile_8_lin = ttg.local_load %xTile_smem : !ttg.memdesc<128x64xbf16, #shared, #smem> -> tensor<128x64xbf16, #linear_guess>
-        %xTile_r = tt.reshape %xTile_8_lin : tensor<128x64xbf16, #linear_guess> -> tensor<128x8x4x2xbf16, #linear_guess_r>
+        // %xTile_8_lin = ttg.local_load %xTile_smem : !ttg.memdesc<128x64xbf16, #shared, #smem> -> tensor<128x64xbf16, #linear_guess>
+        %xTile_r = tt.reshape %xTile : tensor<128x64xbf16, #linear_guess> -> tensor<128x8x4x2xbf16, #linear_guess_r>
 
         %load_1 = tt.descriptor_load %y_desc[%offset_1, %offset_2] : !tt.tensordesc<256x64xbf16> -> tensor<256x64xbf16, #blocked> loc(#loc53)
         %load_1_9 = tt.trans %load_1 {order = array<i32: 1, 0>} : tensor<256x64xbf16, #blocked> -> tensor<64x256xbf16, #blocked2> loc(#loc54)
