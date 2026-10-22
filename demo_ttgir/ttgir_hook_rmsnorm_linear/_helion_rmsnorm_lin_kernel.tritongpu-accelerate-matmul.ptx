@@ -20,1080 +20,1404 @@
 )
 .reqntid 256
 {
-	.reg .pred 	%p<51>;
-	.reg .b16 	%rs<7>;
-	.reg .b32 	%r<532>;
-	.reg .b64 	%rd<30>;
-	.loc	1 20 0                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:20:0
+	.reg .pred 	%p<48>;
+	.reg .b16 	%rs<19>;
+	.reg .b32 	%r<722>;
+	.reg .b64 	%rd<41>;
+	.loc	1 20 0                          // rmsnorm_linear_kernel.py:20:0
 $L__func_begin0:
-	.loc	1 20 0                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:20:0
+	.loc	1 20 0                          // rmsnorm_linear_kernel.py:20:0
 
 // %bb.0:
-	ld.param.b64 	%rd2, [_helion_rmsnorm_lin_kernel_param_0];
-	ld.param.b64 	%rd5, [_helion_rmsnorm_lin_kernel_param_1];
+	ld.param.b64 	%rd3, [_helion_rmsnorm_lin_kernel_param_0];
+	ld.param.b64 	%rd6, [_helion_rmsnorm_lin_kernel_param_1];
 $L__tmp0:
-	.loc	1 22 14                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:22:14
-	mov.u32 	%r33, %ctaid.x;
-	ld.param.b64 	%rd7, [_helion_rmsnorm_lin_kernel_param_2];
-	mov.u32 	%r34, %ctaid.y;
-	mov.u32 	%r35, %ctaid.z;
-	ld.param.b64 	%rd9, [_helion_rmsnorm_lin_kernel_param_4];
-	mov.u32 	%r36, %nctaid.x;
-	mov.u32 	%r37, %nctaid.y;
-	cvt.u64.u32 	%rd10, %r34;
-	mad.wide.u32 	%rd11, %r35, %r37, %rd10;
-	cvt.u64.u32 	%rd12, %r33;
-	cvt.u64.u32 	%rd13, %r36;
-	mad.lo.s64 	%rd14, %rd11, %rd13, %rd12;
-	mad.lo.s64 	%rd4, %rd14, 384, %rd9;
-	mov.u32 	%r1, %tid.x;
-	and.b32 	%r2, %r1, 255;
-	setp.lt.u32 	%p1, %r2, 32;
-	shl.b32 	%r38, %r2, 2;
-	mov.b32 	%r39, global_smem;
-	add.s32 	%r26, %r39, %r38;
-	mov.b32 	%r31, 0;
+	.loc	1 31 17                         // rmsnorm_linear_kernel.py:31:17
+	mov.u32 	%r46, %ctaid.x;
+	shl.b32 	%r582, %r46, 2;
+	.loc	1 32 15                         // rmsnorm_linear_kernel.py:32:15
+	add.s32 	%r47, %r582, 4;
+	.loc	1 33 5                          // rmsnorm_linear_kernel.py:33:5
+	min.s32 	%r1, %r47, 512;
+	ld.param.b64 	%rd8, [_helion_rmsnorm_lin_kernel_param_4];
+	.loc	1 22 14                         // rmsnorm_linear_kernel.py:22:14
+	mov.u32 	%r48, %ctaid.y;
+	mov.u32 	%r49, %ctaid.z;
+	mov.u32 	%r50, %nctaid.x;
+	mov.u32 	%r51, %nctaid.y;
+	cvt.u64.u32 	%rd9, %r48;
+	mad.wide.u32 	%rd10, %r49, %r51, %rd9;
+	cvt.u64.u32 	%rd11, %r46;
+	cvt.u64.u32 	%rd12, %r50;
+	mad.lo.s64 	%rd13, %rd10, %rd12, %rd11;
+	shl.b64 	%rd14, %rd13, 8;
+	add.s64 	%rd5, %rd8, %rd14;
+	mov.u32 	%r2, %tid.x;
+	and.b32 	%r3, %r2, 255;
+	setp.lt.u32 	%p1, %r3, 32;
+	shl.b32 	%r52, %r3, 2;
+	mov.b32 	%r53, global_smem;
+	add.s32 	%r39, %r53, %r52;
+	mov.b32 	%r44, 0;
 	// begin inline asm
-	@%p1 st.shared::cta.b32 [ %r26 + 0 ], %r31;
+	@%p1 st.shared::cta.b32 [ %r39 + 0 ], %r44;
 
 	// end inline asm
 	bar.warp.sync 	-1;
-	setp.eq.b32 	%p2, %r2, 0;
-	cvt.u64.u32 	%rd1, %r39;
+	setp.eq.b32 	%p2, %r3, 0;
+	cvt.u64.u32 	%rd2, %r53;
 	// begin inline asm
-	@%p2 tensormap.replace.tile.global_address.shared::cta.b1024.b64 [ %rd1 + 0 ], %rd2;
+	@%p2 tensormap.replace.tile.global_address.shared::cta.b1024.b64 [ %rd2 + 0 ], %rd3;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.rank.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x1;
+	@%p2 tensormap.replace.tile.rank.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x1;
 
 	// end inline asm
-	mov.b32 	%r27, 64;
+	mov.b32 	%r40, 64;
 	// begin inline asm
-	@%p2 tensormap.replace.tile.box_dim.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x0, %r27;
+	@%p2 tensormap.replace.tile.box_dim.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x0, %r40;
 
 	// end inline asm
-	mov.b32 	%r28, 128;
+	mov.b32 	%r41, 128;
 	// begin inline asm
-	@%p2 tensormap.replace.tile.box_dim.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x1, %r28;
+	@%p2 tensormap.replace.tile.box_dim.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x1, %r41;
 
 	// end inline asm
-	mov.b32 	%r29, 4096;
+	mov.b32 	%r42, 4096;
 	// begin inline asm
-	@%p2 tensormap.replace.tile.global_dim.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x0, %r29;
-
-	// end inline asm
-	// begin inline asm
-	@%p2 tensormap.replace.tile.global_dim.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x1, %r29;
-
-	// end inline asm
-	mov.b64 	%rd3, 8192;
-	// begin inline asm
-	@%p2 tensormap.replace.tile.global_stride.shared::cta.b1024.b64 [ %rd1 + 0 ], 0x0, %rd3;
-
-	// end inline asm
-	mov.b32 	%r30, 1;
-	// begin inline asm
-	@%p2 tensormap.replace.tile.element_stride.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x0, %r30;
+	@%p2 tensormap.replace.tile.global_dim.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x0, %r42;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.element_stride.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x1, %r30;
+	@%p2 tensormap.replace.tile.global_dim.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x1, %r42;
+
+	// end inline asm
+	mov.b64 	%rd4, 8192;
+	// begin inline asm
+	@%p2 tensormap.replace.tile.global_stride.shared::cta.b1024.b64 [ %rd2 + 0 ], 0x0, %rd4;
+
+	// end inline asm
+	mov.b32 	%r43, 1;
+	// begin inline asm
+	@%p2 tensormap.replace.tile.element_stride.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x0, %r43;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.elemtype.shared::cta.b1024.b32 [ %rd1 + 0 ], 0xa;
+	@%p2 tensormap.replace.tile.element_stride.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x1, %r43;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.interleave_layout.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x0;
+	@%p2 tensormap.replace.tile.elemtype.shared::cta.b1024.b32 [ %rd2 + 0 ], 0xa;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.swizzle_mode.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x3;
+	@%p2 tensormap.replace.tile.interleave_layout.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x0;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.fill_mode.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x0;
+	@%p2 tensormap.replace.tile.swizzle_mode.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x3;
 
 	// end inline asm
 	// begin inline asm
-	@%p1 tensormap.cp_fenceproxy.global.shared::cta.tensormap::generic.release.gpu.sync.aligned [ %rd4 + 0 ], [ %rd1 + 0 ], 0x80;
+	@%p2 tensormap.replace.tile.fill_mode.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x0;
 
 	// end inline asm
 	// begin inline asm
-	@%p1 fence.proxy.tensormap::generic.acquire.gpu [ %rd4 + 0 ], 0x80;
+	@%p1 tensormap.cp_fenceproxy.global.shared::cta.tensormap::generic.release.gpu.sync.aligned [ %rd5 + 0 ], [ %rd2 + 0 ], 0x80;
+
+	// end inline asm
+	// begin inline asm
+	@%p1 fence.proxy.tensormap::generic.acquire.gpu [ %rd5 + 0 ], 0x80;
 	@%p1 cp.async.bulk.commit_group ;
 	@%p1 cp.async.bulk.wait_group.read 0 ;
 
 	// end inline asm
 	bar.sync 	0;
-	cvta.global.u64 	%rd15, %rd4;
-	.loc	1 24 14                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:24:14
-	add.s64 	%rd6, %rd4, 128;
+	cvta.global.u64 	%rd15, %rd5;
+	.loc	1 24 14                         // rmsnorm_linear_kernel.py:24:14
+	add.s64 	%rd7, %rd5, 128;
 	bar.sync 	0;
 	// begin inline asm
-	@%p1 st.shared::cta.b32 [ %r26 + 0 ], %r31;
+	@%p1 st.shared::cta.b32 [ %r39 + 0 ], %r44;
 
 	// end inline asm
 	bar.warp.sync 	-1;
 	// begin inline asm
-	@%p2 tensormap.replace.tile.global_address.shared::cta.b1024.b64 [ %rd1 + 0 ], %rd5;
+	@%p2 tensormap.replace.tile.global_address.shared::cta.b1024.b64 [ %rd2 + 0 ], %rd6;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.rank.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x1;
+	@%p2 tensormap.replace.tile.rank.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x1;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.box_dim.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x0, %r27;
+	@%p2 tensormap.replace.tile.box_dim.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x0, %r40;
 
 	// end inline asm
-	mov.b32 	%r32, 256;
+	mov.b32 	%r45, 256;
 	// begin inline asm
-	@%p2 tensormap.replace.tile.box_dim.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x1, %r32;
-
-	// end inline asm
-	// begin inline asm
-	@%p2 tensormap.replace.tile.global_dim.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x0, %r29;
+	@%p2 tensormap.replace.tile.box_dim.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x1, %r45;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.global_dim.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x1, %r29;
+	@%p2 tensormap.replace.tile.global_dim.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x0, %r42;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.global_stride.shared::cta.b1024.b64 [ %rd1 + 0 ], 0x0, %rd3;
+	@%p2 tensormap.replace.tile.global_dim.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x1, %r42;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.element_stride.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x0, %r30;
+	@%p2 tensormap.replace.tile.global_stride.shared::cta.b1024.b64 [ %rd2 + 0 ], 0x0, %rd4;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.element_stride.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x1, %r30;
+	@%p2 tensormap.replace.tile.element_stride.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x0, %r43;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.elemtype.shared::cta.b1024.b32 [ %rd1 + 0 ], 0xa;
+	@%p2 tensormap.replace.tile.element_stride.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x1, %r43;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.interleave_layout.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x0;
+	@%p2 tensormap.replace.tile.elemtype.shared::cta.b1024.b32 [ %rd2 + 0 ], 0xa;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.swizzle_mode.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x3;
+	@%p2 tensormap.replace.tile.interleave_layout.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x0;
 
 	// end inline asm
 	// begin inline asm
-	@%p2 tensormap.replace.tile.fill_mode.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x0;
+	@%p2 tensormap.replace.tile.swizzle_mode.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x3;
 
 	// end inline asm
 	// begin inline asm
-	@%p1 tensormap.cp_fenceproxy.global.shared::cta.tensormap::generic.release.gpu.sync.aligned [ %rd6 + 0 ], [ %rd1 + 0 ], 0x80;
+	@%p2 tensormap.replace.tile.fill_mode.shared::cta.b1024.b32 [ %rd2 + 0 ], 0x0;
 
 	// end inline asm
 	// begin inline asm
-	@%p1 fence.proxy.tensormap::generic.acquire.gpu [ %rd6 + 0 ], 0x80;
+	@%p1 tensormap.cp_fenceproxy.global.shared::cta.tensormap::generic.release.gpu.sync.aligned [ %rd7 + 0 ], [ %rd2 + 0 ], 0x80;
+
+	// end inline asm
+	// begin inline asm
+	@%p1 fence.proxy.tensormap::generic.acquire.gpu [ %rd7 + 0 ], 0x80;
 	@%p1 cp.async.bulk.commit_group ;
 	@%p1 cp.async.bulk.wait_group.read 0 ;
 
 	// end inline asm
 	bar.sync 	0;
-	cvta.global.u64 	%rd16, %rd6;
-	.loc	1 26 16                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:26:16
-	add.s64 	%rd8, %rd4, 256;
-	bar.sync 	0;
-	// begin inline asm
-	@%p1 st.shared::cta.b32 [ %r26 + 0 ], %r31;
-
-	// end inline asm
-	bar.warp.sync 	-1;
-	// begin inline asm
-	@%p2 tensormap.replace.tile.global_address.shared::cta.b1024.b64 [ %rd1 + 0 ], %rd7;
-
-	// end inline asm
-	// begin inline asm
-	@%p2 tensormap.replace.tile.rank.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x1;
-
-	// end inline asm
-	// begin inline asm
-	@%p2 tensormap.replace.tile.box_dim.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x0, %r27;
-
-	// end inline asm
-	// begin inline asm
-	@%p2 tensormap.replace.tile.box_dim.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x1, %r28;
-
-	// end inline asm
-	// begin inline asm
-	@%p2 tensormap.replace.tile.global_dim.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x0, %r29;
-
-	// end inline asm
-	// begin inline asm
-	@%p2 tensormap.replace.tile.global_dim.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x1, %r29;
-
-	// end inline asm
-	// begin inline asm
-	@%p2 tensormap.replace.tile.global_stride.shared::cta.b1024.b64 [ %rd1 + 0 ], 0x0, %rd3;
-
-	// end inline asm
-	// begin inline asm
-	@%p2 tensormap.replace.tile.element_stride.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x0, %r30;
-
-	// end inline asm
-	// begin inline asm
-	@%p2 tensormap.replace.tile.element_stride.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x1, %r30;
-
-	// end inline asm
-	// begin inline asm
-	@%p2 tensormap.replace.tile.elemtype.shared::cta.b1024.b32 [ %rd1 + 0 ], 0xa;
-
-	// end inline asm
-	// begin inline asm
-	@%p2 tensormap.replace.tile.interleave_layout.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x0;
-
-	// end inline asm
-	// begin inline asm
-	@%p2 tensormap.replace.tile.swizzle_mode.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x3;
-
-	// end inline asm
-	// begin inline asm
-	@%p2 tensormap.replace.tile.fill_mode.shared::cta.b1024.b32 [ %rd1 + 0 ], 0x0;
-
-	// end inline asm
-	// begin inline asm
-	@%p1 tensormap.cp_fenceproxy.global.shared::cta.tensormap::generic.release.gpu.sync.aligned [ %rd8 + 0 ], [ %rd1 + 0 ], 0x80;
-
-	// end inline asm
-	// begin inline asm
-	@%p1 fence.proxy.tensormap::generic.acquire.gpu [ %rd8 + 0 ], 0x80;
-	@%p1 cp.async.bulk.commit_group ;
-	@%p1 cp.async.bulk.wait_group.read 0 ;
-
-	// end inline asm
-	bar.sync 	0;
-	cvta.global.u64 	%rd29, %rd8;
-	.loc	1 33 17                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:33:17
-	shl.b32 	%r394, %r33, 2;
-	.loc	1 34 15                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:34:15
-	add.s32 	%r40, %r394, 4;
-	.loc	1 35 5                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:35:5
-	min.s32 	%r3, %r40, 512;
-	.loc	1 37 5                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:37:5
-	setp.ge.s32 	%p3, %r394, %r3;
+	cvta.global.u64 	%rd16, %rd7;
+	.loc	1 35 5                          // rmsnorm_linear_kernel.py:35:5
+	setp.ge.s32 	%p3, %r582, %r1;
 	@%p3 bra 	$L__BB0_5;
 // %bb.1:                               // %.lr.ph
-	.loc	1 0 5                           // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:0:5
-	ld.param.b32 	%r25, [_helion_rmsnorm_lin_kernel_param_3];
-	shr.u32 	%r4, %r1, 5;
-	shl.b32 	%r41, %r1, 7;
-	and.b32 	%r42, %r41, 1920;
-	shl.b32 	%r43, %r1, 6;
-	and.b32 	%r44, %r43, 14336;
-	shl.b32 	%r45, %r1, 4;
-	and.b32 	%r46, %r45, 112;
-	and.b32 	%r47, %r1, 16;
-	xor.b32 	%r48, %r46, %r47;
-	or.b32 	%r49, %r44, %r48;
-	or.b32 	%r5, %r49, %r42;
-	xor.b32 	%r6, %r5, 32;
-	xor.b32 	%r7, %r5, 64;
-	xor.b32 	%r8, %r5, 96;
-	or.b32 	%r50, %r42, %r46;
-	xor.b32 	%r51, %r50, %r47;
-	or.b32 	%r52, %r51, %r44;
-	add.s32 	%r53, %r39, %r52;
-	add.s32 	%r9, %r53, 98304;
-	add.s32 	%r10, %r53, 114688;
-	add.s32 	%r11, %r53, 131072;
-	add.s32 	%r12, %r53, 147456;
-	xor.b32 	%r54, %r52, 32;
-	add.s32 	%r55, %r39, %r54;
-	add.s32 	%r13, %r55, 98304;
-	add.s32 	%r14, %r55, 114688;
-	add.s32 	%r15, %r55, 131072;
-	add.s32 	%r16, %r55, 147456;
-	xor.b32 	%r56, %r52, 64;
-	add.s32 	%r57, %r39, %r56;
-	add.s32 	%r17, %r57, 98304;
-	add.s32 	%r18, %r57, 114688;
-	add.s32 	%r19, %r57, 131072;
-	add.s32 	%r20, %r57, 147456;
-	xor.b32 	%r58, %r52, 96;
-	add.s32 	%r59, %r39, %r58;
-	add.s32 	%r21, %r59, 98304;
-	add.s32 	%r22, %r59, 114688;
-	add.s32 	%r23, %r59, 131072;
-	add.s32 	%r24, %r59, 147456;
+	.loc	1 0 5                           // rmsnorm_linear_kernel.py:0:5
+	ld.param.b32 	%r38, [_helion_rmsnorm_lin_kernel_param_3];
+	ld.param.b64 	%rd1, [_helion_rmsnorm_lin_kernel_param_2];
+	and.b32 	%r4, %r2, 224;
+	bfe.u32 	%r5, %r2, 5, 3;
+	or.b32 	%r6, %r5, 8;
+	or.b32 	%r7, %r5, 16;
+	or.b32 	%r8, %r5, 24;
+	or.b32 	%r9, %r5, 32;
+	or.b32 	%r10, %r5, 40;
+	or.b32 	%r11, %r5, 48;
+	or.b32 	%r12, %r5, 56;
+	or.b32 	%r13, %r5, 64;
+	or.b32 	%r14, %r5, 72;
+	or.b32 	%r15, %r5, 80;
+	or.b32 	%r16, %r5, 88;
+	or.b32 	%r17, %r5, 96;
+	or.b32 	%r18, %r5, 104;
+	or.b32 	%r19, %r5, 112;
+	or.b32 	%r20, %r5, 120;
+	shl.b32 	%r54, %r2, 3;
+	and.b32 	%r21, %r54, 248;
+	shl.b32 	%r55, %r2, 7;
+	and.b32 	%r56, %r55, 1920;
+	shl.b32 	%r57, %r4, 6;
+	shl.b32 	%r58, %r2, 4;
+	and.b32 	%r59, %r58, 112;
+	and.b32 	%r60, %r2, 16;
+	or.b32 	%r61, %r56, %r57;
+	xor.b32 	%r62, %r59, %r60;
+	or.b32 	%r22, %r61, %r62;
+	xor.b32 	%r23, %r22, 32;
+	xor.b32 	%r24, %r22, 64;
+	xor.b32 	%r25, %r22, 96;
+	shl.b32 	%r63, %r2, 1;
+	and.b32 	%r64, %r63, 120;
+	shr.u32 	%r65, %r2, 5;
+	and.b32 	%r66, %r65, 6;
+	add.s32 	%r67, %r53, %r64;
+	add.s32 	%r68, %r67, %r66;
+	add.s32 	%r178, %r68, 131072;
+	add.s32 	%r179, %r68, 131200;
+	and.b32 	%r69, %r2, 56;
+	and.b32 	%r70, %r63, 128;
+	shr.u32 	%r71, %r2, 1;
+	and.b32 	%r72, %r71, 64;
+	add.s32 	%r73, %r53, %r70;
+	add.s32 	%r74, %r73, %r72;
+	add.s32 	%r26, %r74, %r69;
+	and.b32 	%r75, %r2, 248;
+	shl.b32 	%r76, %r75, 1;
+	add.s32 	%r253, %r53, %r76;
+	shl.b32 	%r77, %r2, 2;
+	and.b32 	%r78, %r77, 112;
+	and.b32 	%r79, %r2, 192;
+	shr.u32 	%r80, %r79, 4;
+	bfe.s32 	%r81, %r2, 5, 1;
+	and.b32 	%r82, %r2, 32;
+	shl.b32 	%r83, %r82, 3;
+	add.s32 	%r84, %r53, %r83;
+	add.s32 	%r85, %r84, %r78;
+	add.s32 	%r27, %r85, %r80;
+	and.b32 	%r86, %r2, 3;
+	shl.b32 	%r87, %r75, 4;
+	bfe.s32 	%r88, %r2, 2, 1;
+	and.b32 	%r89, %r88, 4112;
+	or.b32 	%r90, %r89, %r87;
+	mad.lo.s32 	%r91, %r86, 8224, %r90;
+	add.s32 	%r258, %r53, %r91;
+	xor.b32 	%r92, %r91, 16;
+	add.s32 	%r263, %r53, %r92;
+	xor.b32 	%r93, %r91, 32;
+	add.s32 	%r268, %r53, %r93;
+	xor.b32 	%r94, %r91, 48;
+	add.s32 	%r273, %r53, %r94;
+	xor.b32 	%r95, %r91, 64;
+	add.s32 	%r278, %r53, %r95;
+	xor.b32 	%r96, %r91, 80;
+	add.s32 	%r283, %r53, %r96;
+	xor.b32 	%r97, %r91, 96;
+	add.s32 	%r288, %r53, %r97;
+	xor.b32 	%r98, %r91, 112;
+	add.s32 	%r293, %r53, %r98;
+	and.b32 	%r99, %r2, 24;
+	shl.b32 	%r100, %r99, 10;
+	shl.b32 	%r101, %r99, 2;
+	shl.b32 	%r102, %r79, 1;
+	and.b32 	%r103, %r81, 4112;
+	or.b32 	%r104, %r100, %r59;
+	or.b32 	%r105, %r101, %r102;
+	xor.b32 	%r106, %r104, %r105;
+	xor.b32 	%r107, %r106, %r103;
+	add.s32 	%r28, %r53, %r107;
+	add.s32 	%r29, %r28, 512;
+	add.s32 	%r30, %r28, 1024;
+	add.s32 	%r31, %r28, 1536;
+	add.s32 	%r32, %r28, 2048;
+	add.s32 	%r33, %r28, 2560;
+	add.s32 	%r34, %r28, 3072;
+	add.s32 	%r35, %r28, 3584;
 $L__BB0_2:                              // =>This Loop Header: Depth=1
                                         //     Child Loop BB0_3 Depth 2
-	setp.eq.b32 	%p13, %r4, 0;
-	.loc	1 41 17                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:41:17
-	shr.s32 	%r71, %r394, 31;
-	shr.u32 	%r72, %r71, 27;
-	add.s32 	%r73, %r394, %r72;
-	.loc	1 40 17                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:40:17
-	and.b32 	%r74, %r73, 33554400;
-	sub.s32 	%r75, %r394, %r74;
-	.loc	1 42 20                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:42:20
-	shl.b32 	%r177, %r75, 7;
-	.loc	1 43 20                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:43:20
-	shl.b32 	%r76, %r73, 3;
-	and.b32 	%r67, %r76, -256;
-	.loc	1 52 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:52:9
-	elect.sync 	%r77|%p14, -1;
+	setp.lt.u32 	%p13, %r2, 32;
+	.loc	1 41 20                         // rmsnorm_linear_kernel.py:41:20
+	shr.s32 	%r118, %r582, 31;
+	shr.u32 	%r119, %r118, 23;
+	add.s32 	%r120, %r582, %r119;
+	shr.s32 	%r121, %r120, 9;
+	.loc	1 42 23                         // rmsnorm_linear_kernel.py:42:23
+	shl.b32 	%r122, %r121, 5;
+	.loc	1 44 31                         // rmsnorm_linear_kernel.py:44:31
+	and.b32 	%r123, %r120, -512;
+	sub.s32 	%r124, %r582, %r123;
+	.loc	1 43 28                         // rmsnorm_linear_kernel.py:43:28
+	sub.s32 	%r125, 32, %r122;
+	.loc	1 43 24                         // rmsnorm_linear_kernel.py:43:24
+	min.s32 	%r126, %r125, 32;
+	.loc	1 45 17                         // rmsnorm_linear_kernel.py:45:17
+	div.s32 	%r127, %r124, %r126;
+	.loc	1 44 31                         // rmsnorm_linear_kernel.py:44:31
+	mul.lo.s32 	%r128, %r127, %r126;
+	sub.s32 	%r129, %r124, %r128;
+	.loc	1 44 17                         // rmsnorm_linear_kernel.py:44:17
+	add.s32 	%r130, %r129, %r122;
+	.loc	1 46 20                         // rmsnorm_linear_kernel.py:46:20
+	shl.b32 	%r36, %r130, 7;
+	.loc	1 48 20                         // rmsnorm_linear_kernel.py:48:20
+	shl.b32 	%r37, %r127, 8;
+	.loc	1 58 9                          // rmsnorm_linear_kernel.py:58:9
+	elect.sync 	%r131|%p14, -1;
 	and.pred 	%p4, %p13, %p14;
-	add.s32 	%r60, %r39, 196640;
+	add.s32 	%r108, %r53, 131360;
 	// begin inline asm
-	@%p4 mbarrier.init.shared::cta.b64 [%r60], 1;
+	@%p4 mbarrier.init.shared::cta.b64 [%r108], 1;
 
 	// end inline asm
-	elect.sync 	%r78|%p15, -1;
+	elect.sync 	%r132|%p15, -1;
 	and.pred 	%p5, %p13, %p15;
-	add.s32 	%r61, %r39, 196648;
+	add.s32 	%r109, %r53, 131368;
 	// begin inline asm
-	@%p5 mbarrier.init.shared::cta.b64 [%r61], 1;
+	@%p5 mbarrier.init.shared::cta.b64 [%r109], 1;
 
 	// end inline asm
-	elect.sync 	%r79|%p16, -1;
+	elect.sync 	%r133|%p16, -1;
 	and.pred 	%p6, %p13, %p16;
-	add.s32 	%r62, %r39, 196608;
+	add.s32 	%r110, %r53, 131328;
 	// begin inline asm
-	@%p6 mbarrier.init.shared::cta.b64 [%r62], 1;
+	@%p6 mbarrier.init.shared::cta.b64 [%r110], 1;
 
 	// end inline asm
-	elect.sync 	%r80|%p17, -1;
+	elect.sync 	%r134|%p17, -1;
 	and.pred 	%p7, %p13, %p17;
-	add.s32 	%r63, %r39, 196616;
+	add.s32 	%r111, %r53, 131336;
 	// begin inline asm
-	@%p7 mbarrier.init.shared::cta.b64 [%r63], 1;
+	@%p7 mbarrier.init.shared::cta.b64 [%r111], 1;
 
 	// end inline asm
-	elect.sync 	%r81|%p18, -1;
+	elect.sync 	%r135|%p18, -1;
 	and.pred 	%p8, %p13, %p18;
-	add.s32 	%r64, %r39, 196624;
+	add.s32 	%r112, %r53, 131344;
 	// begin inline asm
-	@%p8 mbarrier.init.shared::cta.b64 [%r64], 1;
+	@%p8 mbarrier.init.shared::cta.b64 [%r112], 1;
 
 	// end inline asm
 	bar.sync 	0;
 	// begin inline asm
-	@%p2 mbarrier.arrive.expect_tx.shared::cta.b64 _, [%r60], 16384;
+	@%p2 mbarrier.arrive.expect_tx.shared::cta.b64 _, [%r108], 16384;
 
 	// end inline asm
-	.loc	1 58 21                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:58:21
+	.loc	1 64 21                         // rmsnorm_linear_kernel.py:64:21
 	bar.sync 	0;
-	elect.sync 	%r82|%p19, -1;
+	elect.sync 	%r136|%p19, -1;
 	and.pred 	%p9, %p1, %p19;
-	add.s32 	%r65, %r39, 163840;
-	mov.b32 	%r66, 0;
+	add.s32 	%r113, %r53, 98304;
+	mov.b32 	%r114, 0;
 	// begin inline asm
-	@%p9 cp.async.bulk.tensor.2d.shared::cta.global.mbarrier::complete_tx::bytes [%r65], [%rd15, {%r66, %r177}], [%r60];
+	@%p9 cp.async.bulk.tensor.2d.shared::cta.global.mbarrier::complete_tx::bytes [%r113], [%rd15, {%r114, %r36}], [%r108];
 
 	// end inline asm
-	.loc	1 52 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:52:9
+	.loc	1 58 9                          // rmsnorm_linear_kernel.py:58:9
 	bar.sync 	0;
 	// begin inline asm
-	@%p2 mbarrier.arrive.expect_tx.shared::cta.b64 _, [%r62], 32768;
+	@%p2 mbarrier.arrive.expect_tx.shared::cta.b64 _, [%r110], 32768;
 
 	// end inline asm
-	.loc	1 60 33                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:60:33
+	.loc	1 66 33                         // rmsnorm_linear_kernel.py:66:33
 	fence.proxy.async.shared::cta;
 	bar.sync 	0;
-	elect.sync 	%r83|%p20, -1;
+	elect.sync 	%r137|%p20, -1;
 	and.pred 	%p10, %p1, %p20;
 	// begin inline asm
-	@%p10 cp.async.bulk.tensor.2d.shared::cta.global.mbarrier::complete_tx::bytes [%r39], [%rd16, {%r66, %r67}], [%r62];
+	@%p10 cp.async.bulk.tensor.2d.shared::cta.global.mbarrier::complete_tx::bytes [%r53], [%rd16, {%r114, %r37}], [%r110];
 
 	// end inline asm
-	.loc	1 52 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:52:9
+	.loc	1 58 9                          // rmsnorm_linear_kernel.py:58:9
 	bar.sync 	0;
 	// begin inline asm
-	@%p2 mbarrier.arrive.expect_tx.shared::cta.b64 _, [%r61], 16384;
+	@%p2 mbarrier.arrive.expect_tx.shared::cta.b64 _, [%r109], 16384;
 
 	// end inline asm
-	.loc	1 58 21                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:58:21
+	.loc	1 64 21                         // rmsnorm_linear_kernel.py:64:21
 	bar.sync 	0;
-	elect.sync 	%r84|%p21, -1;
+	elect.sync 	%r138|%p21, -1;
 	and.pred 	%p11, %p1, %p21;
-	add.s32 	%r68, %r39, 180224;
-	mov.b32 	%r69, 64;
+	add.s32 	%r115, %r53, 114688;
+	mov.b32 	%r116, 64;
 	// begin inline asm
-	@%p11 cp.async.bulk.tensor.2d.shared::cta.global.mbarrier::complete_tx::bytes [%r68], [%rd15, {%r69, %r177}], [%r61];
+	@%p11 cp.async.bulk.tensor.2d.shared::cta.global.mbarrier::complete_tx::bytes [%r115], [%rd15, {%r116, %r36}], [%r109];
 
 	// end inline asm
-	.loc	1 52 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:52:9
+	.loc	1 58 9                          // rmsnorm_linear_kernel.py:58:9
 	bar.sync 	0;
 	// begin inline asm
-	@%p2 mbarrier.arrive.expect_tx.shared::cta.b64 _, [%r63], 32768;
+	@%p2 mbarrier.arrive.expect_tx.shared::cta.b64 _, [%r111], 32768;
 
 	// end inline asm
-	.loc	1 60 33                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:60:33
+	.loc	1 66 33                         // rmsnorm_linear_kernel.py:66:33
 	bar.sync 	0;
-	elect.sync 	%r85|%p22, -1;
+	elect.sync 	%r139|%p22, -1;
 	and.pred 	%p12, %p1, %p22;
-	add.s32 	%r70, %r39, 32768;
+	add.s32 	%r117, %r53, 32768;
 	// begin inline asm
-	@%p12 cp.async.bulk.tensor.2d.shared::cta.global.mbarrier::complete_tx::bytes [%r70], [%rd16, {%r69, %r67}], [%r63];
+	@%p12 cp.async.bulk.tensor.2d.shared::cta.global.mbarrier::complete_tx::bytes [%r117], [%rd16, {%r116, %r37}], [%r111];
 
 	// end inline asm
-	mov.b32 	%r403, 0f00000000;
-	mov.b32 	%r397, 1;
-	mov.b32 	%r396, -1;
-	mov.b32 	%r395, %r66;
-	mov.b32 	%r398, %r66;
-	mov.b32 	%r399, %r396;
-	mov.b32 	%r400, %r397;
-	mov.b32 	%r401, %r403;
-	mov.b32 	%r402, %r403;
-	mov.b32 	%r404, %r403;
-	mov.b32 	%r405, %r403;
-	mov.b32 	%r406, %r403;
-	mov.b32 	%r407, %r403;
-	mov.b32 	%r408, %r403;
-	mov.b32 	%r409, %r403;
-	mov.b32 	%r410, %r403;
-	mov.b32 	%r411, %r403;
-	mov.b32 	%r412, %r403;
-	mov.b32 	%r413, %r403;
-	mov.b32 	%r414, %r403;
-	mov.b32 	%r415, %r403;
-	mov.b32 	%r416, %r403;
-	mov.b32 	%r417, %r403;
-	mov.b32 	%r418, %r403;
-	mov.b32 	%r419, %r403;
-	mov.b32 	%r420, %r403;
-	mov.b32 	%r421, %r403;
-	mov.b32 	%r422, %r403;
-	mov.b32 	%r423, %r403;
-	mov.b32 	%r424, %r403;
-	mov.b32 	%r425, %r403;
-	mov.b32 	%r426, %r403;
-	mov.b32 	%r427, %r403;
-	mov.b32 	%r428, %r403;
-	mov.b32 	%r429, %r403;
-	mov.b32 	%r430, %r403;
-	mov.b32 	%r431, %r403;
-	mov.b32 	%r432, %r403;
-	mov.b32 	%r433, %r403;
-	mov.b32 	%r434, %r403;
-	mov.b32 	%r435, %r403;
-	mov.b32 	%r436, %r403;
-	mov.b32 	%r437, %r403;
-	mov.b32 	%r438, %r403;
-	mov.b32 	%r439, %r403;
-	mov.b32 	%r440, %r403;
-	mov.b32 	%r441, %r403;
-	mov.b32 	%r442, %r403;
-	mov.b32 	%r443, %r403;
-	mov.b32 	%r444, %r403;
-	mov.b32 	%r445, %r403;
-	mov.b32 	%r446, %r403;
-	mov.b32 	%r447, %r403;
-	mov.b32 	%r448, %r403;
-	mov.b32 	%r449, %r403;
-	mov.b32 	%r450, %r403;
-	mov.b32 	%r451, %r403;
-	mov.b32 	%r452, %r403;
-	mov.b32 	%r453, %r403;
-	mov.b32 	%r454, %r403;
-	mov.b32 	%r455, %r403;
-	mov.b32 	%r456, %r403;
-	mov.b32 	%r457, %r403;
-	mov.b32 	%r458, %r403;
-	mov.b32 	%r459, %r403;
-	mov.b32 	%r460, %r403;
-	mov.b32 	%r461, %r403;
-	mov.b32 	%r462, %r403;
-	mov.b32 	%r463, %r403;
-	mov.b32 	%r464, %r403;
-	mov.b32 	%r465, %r403;
-	mov.b32 	%r466, %r403;
-	mov.b32 	%r467, %r403;
-	mov.b32 	%r468, %r403;
-	mov.b32 	%r469, %r403;
-	mov.b32 	%r470, %r403;
-	mov.b32 	%r471, %r403;
-	mov.b32 	%r472, %r403;
-	mov.b32 	%r473, %r403;
-	mov.b32 	%r474, %r403;
-	mov.b32 	%r475, %r403;
-	mov.b32 	%r476, %r403;
-	mov.b32 	%r477, %r403;
-	mov.b32 	%r478, %r403;
-	mov.b32 	%r479, %r403;
-	mov.b32 	%r480, %r403;
-	mov.b32 	%r481, %r403;
-	mov.b32 	%r482, %r403;
-	mov.b32 	%r483, %r403;
-	mov.b32 	%r484, %r403;
-	mov.b32 	%r485, %r403;
-	mov.b32 	%r486, %r403;
-	mov.b32 	%r487, %r403;
-	mov.b32 	%r488, %r403;
-	mov.b32 	%r489, %r403;
-	mov.b32 	%r490, %r403;
-	mov.b32 	%r491, %r403;
-	mov.b32 	%r492, %r403;
-	mov.b32 	%r493, %r403;
-	mov.b32 	%r494, %r403;
-	mov.b32 	%r495, %r403;
-	mov.b32 	%r496, %r403;
-	mov.b32 	%r497, %r403;
-	mov.b32 	%r498, %r403;
-	mov.b32 	%r499, %r403;
-	mov.b32 	%r500, %r403;
-	mov.b32 	%r501, %r403;
-	mov.b32 	%r502, %r403;
-	mov.b32 	%r503, %r403;
-	mov.b32 	%r504, %r403;
-	mov.b32 	%r505, %r403;
-	mov.b32 	%r506, %r403;
-	mov.b32 	%r507, %r403;
-	mov.b32 	%r508, %r403;
-	mov.b32 	%r509, %r403;
-	mov.b32 	%r510, %r403;
-	mov.b32 	%r511, %r403;
-	mov.b32 	%r512, %r403;
-	mov.b32 	%r513, %r403;
-	mov.b32 	%r514, %r403;
-	mov.b32 	%r515, %r403;
-	mov.b32 	%r516, %r403;
-	mov.b32 	%r517, %r403;
-	mov.b32 	%r518, %r403;
-	mov.b32 	%r519, %r403;
-	mov.b32 	%r520, %r403;
-	mov.b32 	%r521, %r403;
-	mov.b32 	%r522, %r403;
-	mov.b32 	%r523, %r403;
-	mov.b32 	%r524, %r403;
-	mov.b32 	%r525, %r403;
-	mov.b32 	%r526, %r403;
-	mov.b32 	%r527, %r403;
-	mov.b32 	%r528, %r403;
-	mov.b32 	%r529, %r403;
-	mov.b32 	%r530, %r403;
-	mov.b32 	%r531, %r66;
+	mov.b32 	%r593, 0f00000000;
+	mov.b32 	%r585, 1;
+	mov.b32 	%r584, -1;
+	mov.b32 	%r583, %r114;
+	mov.b32 	%r586, %r114;
+	mov.b32 	%r587, %r584;
+	mov.b32 	%r588, %r585;
+	mov.b32 	%r589, %r593;
+	mov.b32 	%r590, %r593;
+	mov.b32 	%r591, %r593;
+	mov.b32 	%r592, %r593;
+	mov.b32 	%r594, %r593;
+	mov.b32 	%r595, %r593;
+	mov.b32 	%r596, %r593;
+	mov.b32 	%r597, %r593;
+	mov.b32 	%r598, %r593;
+	mov.b32 	%r599, %r593;
+	mov.b32 	%r600, %r593;
+	mov.b32 	%r601, %r593;
+	mov.b32 	%r602, %r593;
+	mov.b32 	%r603, %r593;
+	mov.b32 	%r604, %r593;
+	mov.b32 	%r605, %r593;
+	mov.b32 	%r606, %r593;
+	mov.b32 	%r607, %r593;
+	mov.b32 	%r608, %r593;
+	mov.b32 	%r609, %r593;
+	mov.b32 	%r610, %r593;
+	mov.b32 	%r611, %r593;
+	mov.b32 	%r612, %r593;
+	mov.b32 	%r613, %r593;
+	mov.b32 	%r614, %r593;
+	mov.b32 	%r615, %r593;
+	mov.b32 	%r616, %r593;
+	mov.b32 	%r617, %r593;
+	mov.b32 	%r618, %r593;
+	mov.b32 	%r619, %r593;
+	mov.b32 	%r620, %r593;
+	mov.b32 	%r621, %r593;
+	mov.b32 	%r622, %r593;
+	mov.b32 	%r623, %r593;
+	mov.b32 	%r624, %r593;
+	mov.b32 	%r625, %r593;
+	mov.b32 	%r626, %r593;
+	mov.b32 	%r627, %r593;
+	mov.b32 	%r628, %r593;
+	mov.b32 	%r629, %r593;
+	mov.b32 	%r630, %r593;
+	mov.b32 	%r631, %r593;
+	mov.b32 	%r632, %r593;
+	mov.b32 	%r633, %r593;
+	mov.b32 	%r634, %r593;
+	mov.b32 	%r635, %r593;
+	mov.b32 	%r636, %r593;
+	mov.b32 	%r637, %r593;
+	mov.b32 	%r638, %r593;
+	mov.b32 	%r639, %r593;
+	mov.b32 	%r640, %r593;
+	mov.b32 	%r641, %r593;
+	mov.b32 	%r642, %r593;
+	mov.b32 	%r643, %r593;
+	mov.b32 	%r644, %r593;
+	mov.b32 	%r645, %r593;
+	mov.b32 	%r646, %r593;
+	mov.b32 	%r647, %r593;
+	mov.b32 	%r648, %r593;
+	mov.b32 	%r649, %r593;
+	mov.b32 	%r650, %r593;
+	mov.b32 	%r651, %r593;
+	mov.b32 	%r652, %r593;
+	mov.b32 	%r653, %r593;
+	mov.b32 	%r654, %r593;
+	mov.b32 	%r655, %r593;
+	mov.b32 	%r656, %r593;
+	mov.b32 	%r657, %r593;
+	mov.b32 	%r658, %r593;
+	mov.b32 	%r659, %r593;
+	mov.b32 	%r660, %r593;
+	mov.b32 	%r661, %r593;
+	mov.b32 	%r662, %r593;
+	mov.b32 	%r663, %r593;
+	mov.b32 	%r664, %r593;
+	mov.b32 	%r665, %r593;
+	mov.b32 	%r666, %r593;
+	mov.b32 	%r667, %r593;
+	mov.b32 	%r668, %r593;
+	mov.b32 	%r669, %r593;
+	mov.b32 	%r670, %r593;
+	mov.b32 	%r671, %r593;
+	mov.b32 	%r672, %r593;
+	mov.b32 	%r673, %r593;
+	mov.b32 	%r674, %r593;
+	mov.b32 	%r675, %r593;
+	mov.b32 	%r676, %r593;
+	mov.b32 	%r677, %r593;
+	mov.b32 	%r678, %r593;
+	mov.b32 	%r679, %r593;
+	mov.b32 	%r680, %r593;
+	mov.b32 	%r681, %r593;
+	mov.b32 	%r682, %r593;
+	mov.b32 	%r683, %r593;
+	mov.b32 	%r684, %r593;
+	mov.b32 	%r685, %r593;
+	mov.b32 	%r686, %r593;
+	mov.b32 	%r687, %r593;
+	mov.b32 	%r688, %r593;
+	mov.b32 	%r689, %r593;
+	mov.b32 	%r690, %r593;
+	mov.b32 	%r691, %r593;
+	mov.b32 	%r692, %r593;
+	mov.b32 	%r693, %r593;
+	mov.b32 	%r694, %r593;
+	mov.b32 	%r695, %r593;
+	mov.b32 	%r696, %r593;
+	mov.b32 	%r697, %r593;
+	mov.b32 	%r698, %r593;
+	mov.b32 	%r699, %r593;
+	mov.b32 	%r700, %r593;
+	mov.b32 	%r701, %r593;
+	mov.b32 	%r702, %r593;
+	mov.b32 	%r703, %r593;
+	mov.b32 	%r704, %r593;
+	mov.b32 	%r705, %r593;
+	mov.b32 	%r706, %r593;
+	mov.b32 	%r707, %r593;
+	mov.b32 	%r708, %r593;
+	mov.b32 	%r709, %r593;
+	mov.b32 	%r710, %r593;
+	mov.b32 	%r711, %r593;
+	mov.b32 	%r712, %r593;
+	mov.b32 	%r713, %r593;
+	mov.b32 	%r714, %r593;
+	mov.b32 	%r715, %r593;
+	mov.b32 	%r716, %r593;
+	mov.b32 	%r717, %r593;
+	mov.b32 	%r718, %r593;
+	mov.b32 	%r719, %r593;
+	mov.b32 	%r720, %r593;
+	mov.b32 	%r721, %r114;
 $L__BB0_3:                              //   Parent Loop BB0_2 Depth=1
                                         // =>  This Inner Loop Header: Depth=2
-	.loc	1 52 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:52:9
-	setp.lt.u32 	%p27, %r531, 3968;
-	add.s32 	%r97, %r396, 1;
-	setp.gt.s32 	%p28, %r97, 2;
-	selp.b32 	%r396, 0, %r97, %p28;
-	selp.b32 	%r98, 1, 0, %p28;
-	xor.b32 	%r395, %r395, %r98;
-	add.s32 	%r99, %r399, 1;
-	setp.gt.s32 	%p29, %r99, 1;
-	selp.b32 	%r399, 0, %r99, %p29;
-	selp.b32 	%r100, 1, 0, %p29;
-	xor.b32 	%r398, %r398, %r100;
-	shl.b32 	%r101, %r399, 3;
-	add.s32 	%r102, %r39, %r101;
-	add.s32 	%r86, %r102, 196640;
+	.loc	1 58 9                          // rmsnorm_linear_kernel.py:58:9
+	setp.lt.u32 	%p27, %r721, 3968;
+	add.s32 	%r185, %r584, 1;
+	setp.gt.s32 	%p28, %r185, 2;
+	selp.b32 	%r584, 0, %r185, %p28;
+	selp.b32 	%r186, 1, 0, %p28;
+	xor.b32 	%r583, %r583, %r186;
+	add.s32 	%r187, %r587, 1;
+	setp.gt.s32 	%p29, %r187, 1;
+	selp.b32 	%r587, 0, %r187, %p29;
+	selp.b32 	%r188, 1, 0, %p29;
+	xor.b32 	%r586, %r586, %r188;
+	shl.b32 	%r189, %r587, 3;
+	add.s32 	%r190, %r53, %r189;
+	add.s32 	%r140, %r190, 131360;
 	// begin inline asm
 	
 {
 	.reg .pred complete;
-	.loc	1 55 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:55:9
+	.loc	1 61 9                          // rmsnorm_linear_kernel.py:61:9
 	waitLoop:
-	.loc	1 56 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:56:9
-	mbarrier.try_wait.parity.shared::cta.b64 complete, [%r86], %r398;
+	.loc	1 62 9                          // rmsnorm_linear_kernel.py:62:9
+	mbarrier.try_wait.parity.shared::cta.b64 complete, [%r140], %r586;
 	@!complete bra.uni waitLoop;
 }
 
 
 	// end inline asm
-	.loc	1 58 21                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:58:21
-	shl.b32 	%r103, %r399, 14;
-	add.s32 	%r104, %r39, %r103;
-	add.s32 	%r105, %r104, 163840;
-	add.s32 	%r106, %r104, %r5;
-	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r107, %r108, %r109, %r110}, [%r106+163840];
-	add.s32 	%r111, %r104, %r6;
-	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r112, %r113, %r114, %r115}, [%r111+163840];
-	add.s32 	%r116, %r104, %r7;
-	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r117, %r118, %r119, %r120}, [%r116+163840];
-	add.s32 	%r121, %r104, %r8;
-	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r122, %r123, %r124, %r125}, [%r121+163840];
-	.loc	1 52 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:52:9
-	shl.b32 	%r126, %r396, 3;
-	add.s32 	%r127, %r39, %r126;
-	add.s32 	%r87, %r127, 196608;
+	.loc	1 64 21                         // rmsnorm_linear_kernel.py:64:21
+	shl.b32 	%r191, %r587, 14;
+	add.s32 	%r192, %r53, %r191;
+	.loc	1 58 9                          // rmsnorm_linear_kernel.py:58:9
+	shl.b32 	%r193, %r584, 3;
+	add.s32 	%r194, %r53, %r193;
+	add.s32 	%r141, %r194, 131328;
 	// begin inline asm
 	
 {
 	.reg .pred complete;
-	.loc	1 55 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:55:9
+	.loc	1 61 9                          // rmsnorm_linear_kernel.py:61:9
 	waitLoop:
-	.loc	1 56 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:56:9
-	mbarrier.try_wait.parity.shared::cta.b64 complete, [%r87], %r395;
+	.loc	1 62 9                          // rmsnorm_linear_kernel.py:62:9
+	mbarrier.try_wait.parity.shared::cta.b64 complete, [%r141], %r583;
 	@!complete bra.uni waitLoop;
 }
 
 
 	// end inline asm
-	.loc	1 60 33                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:60:33
-	shl.b32 	%r128, %r396, 15;
-	add.s32 	%r129, %r39, %r128;
-	.loc	1 61 19                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:61:19
+	.loc	1 66 33                         // rmsnorm_linear_kernel.py:66:33
+	shl.b32 	%r195, %r584, 15;
+	add.s32 	%r196, %r53, %r195;
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	add.s32 	%r197, %r192, %r22;
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r143, %r145, %r147, %r149}, [%r197+98304];
+	add.s32 	%r198, %r192, %r23;
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r151, %r153, %r155, %r157}, [%r198+98304];
+	add.s32 	%r199, %r192, %r24;
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r161, %r163, %r165, %r167}, [%r199+98304];
+	add.s32 	%r200, %r192, %r25;
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r169, %r171, %r173, %r175}, [%r200+98304];
 	bar.sync 	0;
-	shr.u32 	%r130, %r105, 4;
-	shfl.sync.idx.b32 	%r131, %r4, 0, 31, -1;
-	shl.b32 	%r132, %r131, 7;
-	and.b32 	%r133, %r132, 512;
-	add.s32 	%r134, %r133, %r130;
-	and.b32 	%r135, %r134, 32767;
-	cvt.u64.u32 	%rd27, %r135;
-	bfe.u32 	%r136, %r129, 4, 15;
-	cvt.u64.u32 	%rd28, %r136;
+	bfe.u32 	%r201, %r196, 4, 15;
+	cvt.u64.u32 	%rd23, %r201;
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r142, %r143;
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r144, %r145;
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r146, %r147;
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r148, %r149;
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r150, %r151;
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r152, %r153;
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r154, %r155;
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r156, %r157;
+
+	// end inline asm
 	wgmma.fence.sync.aligned;
-	or.b64 	%rd17, %rd27, 4611686293305294848;
-	or.b64 	%rd18, %rd28, 4611686293305294848;
+	or.b64 	%rd17, %rd23, 4611686293305294848;
 	mov.pred 	%p23, -1;
 	// begin inline asm
-	.loc	1 61 19                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:61:19
-	wgmma.mma_async.sync.aligned.m64n256k16.f32.bf16.bf16 {%r403,%r404,%r405,%r406,%r407,%r408,%r409,%r410,%r411,%r412,%r413,%r414,%r415,%r416,%r417,%r418,%r419,%r420,%r421,%r422,%r423,%r424,%r425,%r426,%r427,%r428,%r429,%r430,%r431,%r432,%r433,%r434,%r435,%r436,%r437,%r438,%r439,%r440,%r441,%r442,%r443,%r444,%r445,%r446,%r447,%r448,%r449,%r450,%r451,%r452,%r453,%r454,%r455,%r456,%r457,%r458,%r459,%r460,%r461,%r462,%r463,%r464,%r465,%r466,%r467,%r468,%r469,%r470,%r471,%r472,%r473,%r474,%r475,%r476,%r477,%r478,%r479,%r480,%r481,%r482,%r483,%r484,%r485,%r486,%r487,%r488,%r489,%r490,%r491,%r492,%r493,%r494,%r495,%r496,%r497,%r498,%r499,%r500,%r501,%r502,%r503,%r504,%r505,%r506,%r507,%r508,%r509,%r510,%r511,%r512,%r513,%r514,%r515,%r516,%r517,%r518,%r519,%r520,%r521,%r522,%r523,%r524,%r525,%r526,%r527,%r528,%r529,%r530}, %rd17, %rd18, %p23, 1, 1, 0, 0;
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	wgmma.mma_async.sync.aligned.m64n256k16.f32.bf16.bf16 {%r593,%r594,%r595,%r596,%r597,%r598,%r599,%r600,%r601,%r602,%r603,%r604,%r605,%r606,%r607,%r608,%r609,%r610,%r611,%r612,%r613,%r614,%r615,%r616,%r617,%r618,%r619,%r620,%r621,%r622,%r623,%r624,%r625,%r626,%r627,%r628,%r629,%r630,%r631,%r632,%r633,%r634,%r635,%r636,%r637,%r638,%r639,%r640,%r641,%r642,%r643,%r644,%r645,%r646,%r647,%r648,%r649,%r650,%r651,%r652,%r653,%r654,%r655,%r656,%r657,%r658,%r659,%r660,%r661,%r662,%r663,%r664,%r665,%r666,%r667,%r668,%r669,%r670,%r671,%r672,%r673,%r674,%r675,%r676,%r677,%r678,%r679,%r680,%r681,%r682,%r683,%r684,%r685,%r686,%r687,%r688,%r689,%r690,%r691,%r692,%r693,%r694,%r695,%r696,%r697,%r698,%r699,%r700,%r701,%r702,%r703,%r704,%r705,%r706,%r707,%r708,%r709,%r710,%r711,%r712,%r713,%r714,%r715,%r716,%r717,%r718,%r719,%r720}, {%r142,%r144,%r146,%r148}, %rd17, %p23, 1, 1, 0;
 
 	// end inline asm
-	add.s64 	%rd19, %rd27, 4611686293305294850;
-	add.s64 	%rd20, %rd28, 4611686293305294850;
+	add.s64 	%rd18, %rd23, 4611686293305294850;
 	// begin inline asm
-	.loc	1 61 19                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:61:19
-	wgmma.mma_async.sync.aligned.m64n256k16.f32.bf16.bf16 {%r403,%r404,%r405,%r406,%r407,%r408,%r409,%r410,%r411,%r412,%r413,%r414,%r415,%r416,%r417,%r418,%r419,%r420,%r421,%r422,%r423,%r424,%r425,%r426,%r427,%r428,%r429,%r430,%r431,%r432,%r433,%r434,%r435,%r436,%r437,%r438,%r439,%r440,%r441,%r442,%r443,%r444,%r445,%r446,%r447,%r448,%r449,%r450,%r451,%r452,%r453,%r454,%r455,%r456,%r457,%r458,%r459,%r460,%r461,%r462,%r463,%r464,%r465,%r466,%r467,%r468,%r469,%r470,%r471,%r472,%r473,%r474,%r475,%r476,%r477,%r478,%r479,%r480,%r481,%r482,%r483,%r484,%r485,%r486,%r487,%r488,%r489,%r490,%r491,%r492,%r493,%r494,%r495,%r496,%r497,%r498,%r499,%r500,%r501,%r502,%r503,%r504,%r505,%r506,%r507,%r508,%r509,%r510,%r511,%r512,%r513,%r514,%r515,%r516,%r517,%r518,%r519,%r520,%r521,%r522,%r523,%r524,%r525,%r526,%r527,%r528,%r529,%r530}, %rd19, %rd20, %p23, 1, 1, 0, 0;
-
-	// end inline asm
-	add.s64 	%rd21, %rd27, 4611686293305294852;
-	add.s64 	%rd22, %rd28, 4611686293305294852;
-	// begin inline asm
-	.loc	1 61 19                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:61:19
-	wgmma.mma_async.sync.aligned.m64n256k16.f32.bf16.bf16 {%r403,%r404,%r405,%r406,%r407,%r408,%r409,%r410,%r411,%r412,%r413,%r414,%r415,%r416,%r417,%r418,%r419,%r420,%r421,%r422,%r423,%r424,%r425,%r426,%r427,%r428,%r429,%r430,%r431,%r432,%r433,%r434,%r435,%r436,%r437,%r438,%r439,%r440,%r441,%r442,%r443,%r444,%r445,%r446,%r447,%r448,%r449,%r450,%r451,%r452,%r453,%r454,%r455,%r456,%r457,%r458,%r459,%r460,%r461,%r462,%r463,%r464,%r465,%r466,%r467,%r468,%r469,%r470,%r471,%r472,%r473,%r474,%r475,%r476,%r477,%r478,%r479,%r480,%r481,%r482,%r483,%r484,%r485,%r486,%r487,%r488,%r489,%r490,%r491,%r492,%r493,%r494,%r495,%r496,%r497,%r498,%r499,%r500,%r501,%r502,%r503,%r504,%r505,%r506,%r507,%r508,%r509,%r510,%r511,%r512,%r513,%r514,%r515,%r516,%r517,%r518,%r519,%r520,%r521,%r522,%r523,%r524,%r525,%r526,%r527,%r528,%r529,%r530}, %rd21, %rd22, %p23, 1, 1, 0, 0;
-
-	// end inline asm
-	add.s64 	%rd23, %rd27, 4611686293305294854;
-	add.s64 	%rd24, %rd28, 4611686293305294854;
-	// begin inline asm
-	.loc	1 61 19                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:61:19
-	wgmma.mma_async.sync.aligned.m64n256k16.f32.bf16.bf16 {%r403,%r404,%r405,%r406,%r407,%r408,%r409,%r410,%r411,%r412,%r413,%r414,%r415,%r416,%r417,%r418,%r419,%r420,%r421,%r422,%r423,%r424,%r425,%r426,%r427,%r428,%r429,%r430,%r431,%r432,%r433,%r434,%r435,%r436,%r437,%r438,%r439,%r440,%r441,%r442,%r443,%r444,%r445,%r446,%r447,%r448,%r449,%r450,%r451,%r452,%r453,%r454,%r455,%r456,%r457,%r458,%r459,%r460,%r461,%r462,%r463,%r464,%r465,%r466,%r467,%r468,%r469,%r470,%r471,%r472,%r473,%r474,%r475,%r476,%r477,%r478,%r479,%r480,%r481,%r482,%r483,%r484,%r485,%r486,%r487,%r488,%r489,%r490,%r491,%r492,%r493,%r494,%r495,%r496,%r497,%r498,%r499,%r500,%r501,%r502,%r503,%r504,%r505,%r506,%r507,%r508,%r509,%r510,%r511,%r512,%r513,%r514,%r515,%r516,%r517,%r518,%r519,%r520,%r521,%r522,%r523,%r524,%r525,%r526,%r527,%r528,%r529,%r530}, %rd23, %rd24, %p23, 1, 1, 0, 0;
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	wgmma.mma_async.sync.aligned.m64n256k16.f32.bf16.bf16 {%r593,%r594,%r595,%r596,%r597,%r598,%r599,%r600,%r601,%r602,%r603,%r604,%r605,%r606,%r607,%r608,%r609,%r610,%r611,%r612,%r613,%r614,%r615,%r616,%r617,%r618,%r619,%r620,%r621,%r622,%r623,%r624,%r625,%r626,%r627,%r628,%r629,%r630,%r631,%r632,%r633,%r634,%r635,%r636,%r637,%r638,%r639,%r640,%r641,%r642,%r643,%r644,%r645,%r646,%r647,%r648,%r649,%r650,%r651,%r652,%r653,%r654,%r655,%r656,%r657,%r658,%r659,%r660,%r661,%r662,%r663,%r664,%r665,%r666,%r667,%r668,%r669,%r670,%r671,%r672,%r673,%r674,%r675,%r676,%r677,%r678,%r679,%r680,%r681,%r682,%r683,%r684,%r685,%r686,%r687,%r688,%r689,%r690,%r691,%r692,%r693,%r694,%r695,%r696,%r697,%r698,%r699,%r700,%r701,%r702,%r703,%r704,%r705,%r706,%r707,%r708,%r709,%r710,%r711,%r712,%r713,%r714,%r715,%r716,%r717,%r718,%r719,%r720}, {%r150,%r152,%r154,%r156}, %rd18, %p23, 1, 1, 0;
 
 	// end inline asm
 	wgmma.commit_group.sync.aligned;
-	cvt.u64.u32 	%rd26, %r129;
-	cvt.u64.u32 	%rd25, %r105;
-	mov.b32 	%r88, %r66;
-	mov.b32 	%r89, %r66;
-	mov.b32 	%r90, %r66;
-	mov.b32 	%r91, %r66;
+	cvt.u64.u32 	%rd22, %r196;
+	mov.b64 	%rd19, %rd22;
+	mov.b32 	%r158, %r114;
+	mov.b32 	%r159, %r114;
 	// begin inline asm
-	// wait for regs: %r403,%r404,%r405,%r406,%r407,%r408,%r409,%r410,%r411,%r412,%r413,%r414,%r415,%r416,%r417,%r418,%r419,%r420,%r421,%r422,%r423,%r424,%r425,%r426,%r427,%r428,%r429,%r430,%r431,%r432,%r433,%r434,%r435,%r436,%r437,%r438,%r439,%r440,%r441,%r442,%r443,%r444,%r445,%r446,%r447,%r448,%r449,%r450,%r451,%r452,%r453,%r454,%r455,%r456,%r457,%r458,%r459,%r460,%r461,%r462,%r463,%r464,%r465,%r466,%r467,%r468,%r469,%r470,%r471,%r472,%r473,%r474,%r475,%r476,%r477,%r478,%r479,%r480,%r481,%r482,%r483,%r484,%r485,%r486,%r487,%r488,%r489,%r490,%r491,%r492,%r493,%r494,%r495,%r496,%r497,%r498,%r499,%r500,%r501,%r502,%r503,%r504,%r505,%r506,%r507,%r508,%r509,%r510,%r511,%r512,%r513,%r514,%r515,%r516,%r517,%r518,%r519,%r520,%r521,%r522,%r523,%r524,%r525,%r526,%r527,%r528,%r529,%r530,%rd25,%r88,%r89,%rd26,%r90,%r91
-	.loc	1 62 19                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:62:19
+	// wait for regs: %r593,%r594,%r595,%r596,%r597,%r598,%r599,%r600,%r601,%r602,%r603,%r604,%r605,%r606,%r607,%r608,%r609,%r610,%r611,%r612,%r613,%r614,%r615,%r616,%r617,%r618,%r619,%r620,%r621,%r622,%r623,%r624,%r625,%r626,%r627,%r628,%r629,%r630,%r631,%r632,%r633,%r634,%r635,%r636,%r637,%r638,%r639,%r640,%r641,%r642,%r643,%r644,%r645,%r646,%r647,%r648,%r649,%r650,%r651,%r652,%r653,%r654,%r655,%r656,%r657,%r658,%r659,%r660,%r661,%r662,%r663,%r664,%r665,%r666,%r667,%r668,%r669,%r670,%r671,%r672,%r673,%r674,%r675,%r676,%r677,%r678,%r679,%r680,%r681,%r682,%r683,%r684,%r685,%r686,%r687,%r688,%r689,%r690,%r691,%r692,%r693,%r694,%r695,%r696,%r697,%r698,%r699,%r700,%r701,%r702,%r703,%r704,%r705,%r706,%r707,%r708,%r709,%r710,%r711,%r712,%r713,%r714,%r715,%r716,%r717,%r718,%r719,%r720,%rd19,%r158,%r159
+	.loc	1 68 19                         // rmsnorm_linear_kernel.py:68:19
 	wgmma.wait_group.sync.aligned 1;
 
 	// end inline asm
-	.loc	1 85 17                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:85:17
-	mul.bf16x2 	%r137, %r109, %r109;
-	mul.bf16x2 	%r138, %r114, %r114;
-	mul.bf16x2 	%r139, %r119, %r119;
-	mul.bf16x2 	%r140, %r124, %r124;
-	mul.bf16x2 	%r141, %r110, %r110;
-	mul.bf16x2 	%r142, %r115, %r115;
-	mul.bf16x2 	%r143, %r120, %r120;
-	mul.bf16x2 	%r144, %r125, %r125;
-	fma.rn.bf16x2 	%r145, %r107, %r107, %r137;
-	fma.rn.bf16x2 	%r146, %r112, %r112, %r138;
-	fma.rn.bf16x2 	%r147, %r117, %r117, %r139;
-	fma.rn.bf16x2 	%r148, %r122, %r122, %r140;
-	add.bf16x2 	%r149, %r145, %r146;
-	add.bf16x2 	%r150, %r147, %r148;
-	add.bf16x2 	%r151, %r149, %r150;
-	fma.rn.bf16x2 	%r152, %r108, %r108, %r141;
-	fma.rn.bf16x2 	%r153, %r113, %r113, %r142;
-	fma.rn.bf16x2 	%r154, %r118, %r118, %r143;
-	fma.rn.bf16x2 	%r155, %r123, %r123, %r144;
-	add.bf16x2 	%r156, %r152, %r153;
-	add.bf16x2 	%r157, %r154, %r155;
-	add.bf16x2 	%r158, %r156, %r157;
-	.loc	1 93 18                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:93:18
-	mov.b32 	{_, %rs1}, %r151;
-	mov.b32 	%r159, {%rs1, %rs2};
-	add.bf16x2 	%r160, %r151, %r159;
-	mov.b32 	{%rs3, _}, %r160;
-	mov.b32 	{_, %rs4}, %r158;
-	mov.b32 	%r161, {%rs4, %rs5};
-	add.bf16x2 	%r162, %r158, %r161;
-	mov.b32 	{%rs6, _}, %r162;
-	.loc	1 66 19                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:66:19
-	cvt.f32.bf16 	%r163, %rs3;
-	cvt.f32.bf16 	%r164, %rs6;
-	.loc	1 67 23                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:67:23
-	add.f32 	%r401, %r401, %r163;
-	add.f32 	%r402, %r402, %r164;
-	.loc	1 52 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:52:9
-	add.s32 	%r165, %r397, 1;
-	setp.gt.s32 	%p30, %r165, 2;
-	selp.b32 	%r397, 0, %r165, %p30;
-	add.s32 	%r166, %r400, 1;
-	setp.gt.s32 	%p31, %r166, 1;
-	selp.b32 	%r400, 0, %r166, %p31;
-	shl.b32 	%r167, %r400, 3;
-	add.s32 	%r168, %r39, %r167;
-	add.s32 	%r92, %r168, 196640;
+	add.s32 	%r202, %r196, 64;
+	bfe.u32 	%r203, %r202, 4, 15;
+	cvt.u64.u32 	%rd24, %r203;
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r160, %r161;
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r162, %r163;
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r164, %r165;
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r166, %r167;
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r168, %r169;
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r170, %r171;
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r172, %r173;
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 %r174, %r175;
+
+	// end inline asm
+	wgmma.fence.sync.aligned;
+	or.b64 	%rd20, %rd24, 4611686293305294848;
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	wgmma.mma_async.sync.aligned.m64n256k16.f32.bf16.bf16 {%r593,%r594,%r595,%r596,%r597,%r598,%r599,%r600,%r601,%r602,%r603,%r604,%r605,%r606,%r607,%r608,%r609,%r610,%r611,%r612,%r613,%r614,%r615,%r616,%r617,%r618,%r619,%r620,%r621,%r622,%r623,%r624,%r625,%r626,%r627,%r628,%r629,%r630,%r631,%r632,%r633,%r634,%r635,%r636,%r637,%r638,%r639,%r640,%r641,%r642,%r643,%r644,%r645,%r646,%r647,%r648,%r649,%r650,%r651,%r652,%r653,%r654,%r655,%r656,%r657,%r658,%r659,%r660,%r661,%r662,%r663,%r664,%r665,%r666,%r667,%r668,%r669,%r670,%r671,%r672,%r673,%r674,%r675,%r676,%r677,%r678,%r679,%r680,%r681,%r682,%r683,%r684,%r685,%r686,%r687,%r688,%r689,%r690,%r691,%r692,%r693,%r694,%r695,%r696,%r697,%r698,%r699,%r700,%r701,%r702,%r703,%r704,%r705,%r706,%r707,%r708,%r709,%r710,%r711,%r712,%r713,%r714,%r715,%r716,%r717,%r718,%r719,%r720}, {%r160,%r162,%r164,%r166}, %rd20, %p23, 1, 1, 0;
+
+	// end inline asm
+	add.s64 	%rd21, %rd24, 4611686293305294850;
+	// begin inline asm
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	wgmma.mma_async.sync.aligned.m64n256k16.f32.bf16.bf16 {%r593,%r594,%r595,%r596,%r597,%r598,%r599,%r600,%r601,%r602,%r603,%r604,%r605,%r606,%r607,%r608,%r609,%r610,%r611,%r612,%r613,%r614,%r615,%r616,%r617,%r618,%r619,%r620,%r621,%r622,%r623,%r624,%r625,%r626,%r627,%r628,%r629,%r630,%r631,%r632,%r633,%r634,%r635,%r636,%r637,%r638,%r639,%r640,%r641,%r642,%r643,%r644,%r645,%r646,%r647,%r648,%r649,%r650,%r651,%r652,%r653,%r654,%r655,%r656,%r657,%r658,%r659,%r660,%r661,%r662,%r663,%r664,%r665,%r666,%r667,%r668,%r669,%r670,%r671,%r672,%r673,%r674,%r675,%r676,%r677,%r678,%r679,%r680,%r681,%r682,%r683,%r684,%r685,%r686,%r687,%r688,%r689,%r690,%r691,%r692,%r693,%r694,%r695,%r696,%r697,%r698,%r699,%r700,%r701,%r702,%r703,%r704,%r705,%r706,%r707,%r708,%r709,%r710,%r711,%r712,%r713,%r714,%r715,%r716,%r717,%r718,%r719,%r720}, {%r168,%r170,%r172,%r174}, %rd21, %p23, 1, 1, 0;
+
+	// end inline asm
+	wgmma.commit_group.sync.aligned;
+	.loc	1 22 14                         // rmsnorm_linear_kernel.py:22:14
+	mov.b32 	%r176, 32;
+	.loc	1 67 19                         // rmsnorm_linear_kernel.py:67:19
+	mov.b32 	%r177, %r114;
+	// begin inline asm
+	// wait for regs: %r593,%r594,%r595,%r596,%r597,%r598,%r599,%r600,%r601,%r602,%r603,%r604,%r605,%r606,%r607,%r608,%r609,%r610,%r611,%r612,%r613,%r614,%r615,%r616,%r617,%r618,%r619,%r620,%r621,%r622,%r623,%r624,%r625,%r626,%r627,%r628,%r629,%r630,%r631,%r632,%r633,%r634,%r635,%r636,%r637,%r638,%r639,%r640,%r641,%r642,%r643,%r644,%r645,%r646,%r647,%r648,%r649,%r650,%r651,%r652,%r653,%r654,%r655,%r656,%r657,%r658,%r659,%r660,%r661,%r662,%r663,%r664,%r665,%r666,%r667,%r668,%r669,%r670,%r671,%r672,%r673,%r674,%r675,%r676,%r677,%r678,%r679,%r680,%r681,%r682,%r683,%r684,%r685,%r686,%r687,%r688,%r689,%r690,%r691,%r692,%r693,%r694,%r695,%r696,%r697,%r698,%r699,%r700,%r701,%r702,%r703,%r704,%r705,%r706,%r707,%r708,%r709,%r710,%r711,%r712,%r713,%r714,%r715,%r716,%r717,%r718,%r719,%r720,%rd22,%r176,%r177
+	.loc	1 68 19                         // rmsnorm_linear_kernel.py:68:19
+	wgmma.wait_group.sync.aligned 1;
+
+	// end inline asm
+$L__tmp1:
+	.loc	1 71 29                         // rmsnorm_linear_kernel.py:71:29
+	.loc	2 293 12, function_name $L__info_string0, inlined_at 1 71 29 // standard.py:293:12
+	mul.bf16x2 	%r204, %r147, %r147;
+	mul.bf16x2 	%r205, %r155, %r155;
+	mul.bf16x2 	%r206, %r165, %r165;
+	mul.bf16x2 	%r207, %r173, %r173;
+	mul.bf16x2 	%r208, %r149, %r149;
+	mul.bf16x2 	%r209, %r157, %r157;
+	mul.bf16x2 	%r210, %r167, %r167;
+	mul.bf16x2 	%r211, %r175, %r175;
+	fma.rn.bf16x2 	%r212, %r143, %r143, %r204;
+	fma.rn.bf16x2 	%r213, %r151, %r151, %r205;
+	fma.rn.bf16x2 	%r214, %r161, %r161, %r206;
+	fma.rn.bf16x2 	%r215, %r169, %r169, %r207;
+	add.bf16x2 	%r216, %r212, %r213;
+	add.bf16x2 	%r217, %r214, %r215;
+	add.bf16x2 	%r218, %r216, %r217;
+	fma.rn.bf16x2 	%r219, %r145, %r145, %r208;
+	fma.rn.bf16x2 	%r220, %r153, %r153, %r209;
+	fma.rn.bf16x2 	%r221, %r163, %r163, %r210;
+	fma.rn.bf16x2 	%r222, %r171, %r171, %r211;
+	add.bf16x2 	%r223, %r219, %r220;
+	add.bf16x2 	%r224, %r221, %r222;
+	add.bf16x2 	%r225, %r223, %r224;
+	mov.b32 	{_, %rs3}, %r218;
+	mov.b32 	%r226, {%rs3, %rs4};
+	add.bf16x2 	%r227, %r218, %r226;
+	mov.b32 	{%rs5, _}, %r227;
+	mov.b32 	{_, %rs6}, %r225;
+	mov.b32 	%r228, {%rs6, %rs7};
+	add.bf16x2 	%r229, %r225, %r228;
+	mov.b32 	{%rs8, _}, %r229;
+	cvt.u32.u16 	%r230, %rs5;
+	shfl.sync.bfly.b32 	%r231, %r230, 2, 31, -1;
+	cvt.u16.u32 	%rs9, %r231;
+	add.bf16 	%rs10, %rs5, %rs9;
+	cvt.u32.u16 	%r232, %rs10;
+	shfl.sync.bfly.b32 	%r233, %r232, 1, 31, -1;
+	cvt.u16.u32 	%rs11, %r233;
+	add.bf16 	%rs1, %rs10, %rs11;
+	cvt.u32.u16 	%r234, %rs8;
+	shfl.sync.bfly.b32 	%r235, %r234, 2, 31, -1;
+	cvt.u16.u32 	%rs12, %r235;
+	add.bf16 	%rs13, %rs8, %rs12;
+	cvt.u32.u16 	%r236, %rs13;
+	shfl.sync.bfly.b32 	%r237, %r236, 1, 31, -1;
+	cvt.u16.u32 	%rs14, %r237;
+	add.bf16 	%rs2, %rs13, %rs14;
+	// begin inline asm
+	.loc	2 293 12, function_name $L__info_string0, inlined_at 1 71 29 // standard.py:293:12
+	st.shared::cta.b16 [ %r178 + 0 ], %rs1;
+
+	// end inline asm
+	// begin inline asm
+	.loc	2 293 12, function_name $L__info_string0, inlined_at 1 71 29 // standard.py:293:12
+	st.shared::cta.b16 [ %r179 + 0 ], %rs2;
+
+	// end inline asm
+	bar.sync 	0;
+	ld.shared.v4.b16 	{%rs15, %rs16, %rs17, %rs18}, [%r26+131072];
+$L__tmp2:
+	.loc	1 72 19                         // rmsnorm_linear_kernel.py:72:19
+	cvt.f32.bf16 	%r238, %rs15;
+	cvt.f32.bf16 	%r239, %rs16;
+	cvt.f32.bf16 	%r240, %rs17;
+	cvt.f32.bf16 	%r241, %rs18;
+	.loc	1 73 23                         // rmsnorm_linear_kernel.py:73:23
+	add.f32 	%r589, %r589, %r238;
+	add.f32 	%r590, %r590, %r239;
+	add.f32 	%r591, %r591, %r240;
+	add.f32 	%r592, %r592, %r241;
+	.loc	1 58 9                          // rmsnorm_linear_kernel.py:58:9
+	add.s32 	%r242, %r585, 1;
+	setp.gt.s32 	%p30, %r242, 2;
+	selp.b32 	%r585, 0, %r242, %p30;
+	add.s32 	%r243, %r588, 1;
+	setp.gt.s32 	%p31, %r243, 1;
+	selp.b32 	%r588, 0, %r243, %p31;
+	shl.b32 	%r244, %r588, 3;
+	add.s32 	%r245, %r53, %r244;
+	add.s32 	%r180, %r245, 131360;
 	bar.sync 	0;
 	and.pred 	%p24, %p2, %p27;
 	// begin inline asm
-	@%p24 mbarrier.arrive.expect_tx.shared::cta.b64 _, [%r92], 16384;
+	@%p24 mbarrier.arrive.expect_tx.shared::cta.b64 _, [%r180], 16384;
 
 	// end inline asm
-	.loc	1 58 21                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:58:21
-	shl.b32 	%r169, %r400, 14;
-	add.s32 	%r170, %r39, %r169;
-	add.s32 	%r93, %r170, 163840;
+	.loc	1 64 21                         // rmsnorm_linear_kernel.py:64:21
+	shl.b32 	%r246, %r588, 14;
+	add.s32 	%r247, %r53, %r246;
+	add.s32 	%r181, %r247, 98304;
 	fence.proxy.async.shared::cta;
 	bar.sync 	0;
-	elect.sync 	%r171|%p32, -1;
+	elect.sync 	%r248|%p32, -1;
 	and.pred 	%p33, %p27, %p32;
 	and.pred 	%p25, %p1, %p33;
-	add.s32 	%r94, %r531, 128;
+	add.s32 	%r182, %r721, 128;
 	// begin inline asm
-	@%p25 cp.async.bulk.tensor.2d.shared::cta.global.mbarrier::complete_tx::bytes [%r93], [%rd15, {%r94, %r177}], [%r92];
+	@%p25 cp.async.bulk.tensor.2d.shared::cta.global.mbarrier::complete_tx::bytes [%r181], [%rd15, {%r182, %r36}], [%r180];
 
 	// end inline asm
-	.loc	1 52 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:52:9
-	shl.b32 	%r172, %r397, 3;
-	add.s32 	%r173, %r39, %r172;
-	add.s32 	%r95, %r173, 196608;
+	.loc	1 58 9                          // rmsnorm_linear_kernel.py:58:9
+	shl.b32 	%r249, %r585, 3;
+	add.s32 	%r250, %r53, %r249;
+	add.s32 	%r183, %r250, 131328;
 	bar.sync 	0;
 	// begin inline asm
-	@%p24 mbarrier.arrive.expect_tx.shared::cta.b64 _, [%r95], 32768;
+	@%p24 mbarrier.arrive.expect_tx.shared::cta.b64 _, [%r183], 32768;
 
 	// end inline asm
-	.loc	1 60 33                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:60:33
-	shl.b32 	%r174, %r397, 15;
-	add.s32 	%r96, %r39, %r174;
+	.loc	1 66 33                         // rmsnorm_linear_kernel.py:66:33
+	shl.b32 	%r251, %r585, 15;
+	add.s32 	%r184, %r53, %r251;
 	bar.sync 	0;
-	elect.sync 	%r175|%p34, -1;
+	elect.sync 	%r252|%p34, -1;
 	and.pred 	%p35, %p27, %p34;
 	and.pred 	%p26, %p1, %p35;
 	// begin inline asm
-	@%p26 cp.async.bulk.tensor.2d.shared::cta.global.mbarrier::complete_tx::bytes [%r96], [%rd16, {%r94, %r67}], [%r95];
+	@%p26 cp.async.bulk.tensor.2d.shared::cta.global.mbarrier::complete_tx::bytes [%r184], [%rd16, {%r182, %r37}], [%r183];
 
 	// end inline asm
-	.loc	1 52 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:52:9
-	setp.lt.u32 	%p36, %r531, 4032;
-	add.s32 	%r531, %r531, 64;
+	.loc	1 58 9                          // rmsnorm_linear_kernel.py:58:9
+	setp.lt.u32 	%p36, %r721, 4032;
+	add.s32 	%r721, %r721, 64;
 	@%p36 bra 	$L__BB0_3;
 // %bb.4:                               // %__nv_rsqrtf.exit
                                         //   in Loop: Header=BB0_2 Depth=1
-	.loc	1 0 9                           // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:0:9
-	setp.lt.u32 	%p43, %r2, 128;
-	.loc	1 52 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:52:9
 	// begin inline asm
-	// wait for regs: %r403,%r404,%r405,%r406,%r407,%r408,%r409,%r410,%r411,%r412,%r413,%r414,%r415,%r416,%r417,%r418,%r419,%r420,%r421,%r422,%r423,%r424,%r425,%r426,%r427,%r428,%r429,%r430,%r431,%r432,%r433,%r434,%r435,%r436,%r437,%r438,%r439,%r440,%r441,%r442,%r443,%r444,%r445,%r446,%r447,%r448,%r449,%r450,%r451,%r452,%r453,%r454,%r455,%r456,%r457,%r458,%r459,%r460,%r461,%r462,%r463,%r464,%r465,%r466,%r467,%r468,%r469,%r470,%r471,%r472,%r473,%r474,%r475,%r476,%r477,%r478,%r479,%r480,%r481,%r482,%r483,%r484,%r485,%r486,%r487,%r488,%r489,%r490,%r491,%r492,%r493,%r494,%r495,%r496,%r497,%r498,%r499,%r500,%r501,%r502,%r503,%r504,%r505,%r506,%r507,%r508,%r509,%r510,%r511,%r512,%r513,%r514,%r515,%r516,%r517,%r518,%r519,%r520,%r521,%r522,%r523,%r524,%r525,%r526,%r527,%r528,%r529,%r530
-	.loc	1 53 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:53:9
+	// wait for regs: %r593,%r594,%r595,%r596,%r597,%r598,%r599,%r600,%r601,%r602,%r603,%r604,%r605,%r606,%r607,%r608,%r609,%r610,%r611,%r612,%r613,%r614,%r615,%r616,%r617,%r618,%r619,%r620,%r621,%r622,%r623,%r624,%r625,%r626,%r627,%r628,%r629,%r630,%r631,%r632,%r633,%r634,%r635,%r636,%r637,%r638,%r639,%r640,%r641,%r642,%r643,%r644,%r645,%r646,%r647,%r648,%r649,%r650,%r651,%r652,%r653,%r654,%r655,%r656,%r657,%r658,%r659,%r660,%r661,%r662,%r663,%r664,%r665,%r666,%r667,%r668,%r669,%r670,%r671,%r672,%r673,%r674,%r675,%r676,%r677,%r678,%r679,%r680,%r681,%r682,%r683,%r684,%r685,%r686,%r687,%r688,%r689,%r690,%r691,%r692,%r693,%r694,%r695,%r696,%r697,%r698,%r699,%r700,%r701,%r702,%r703,%r704,%r705,%r706,%r707,%r708,%r709,%r710,%r711,%r712,%r713,%r714,%r715,%r716,%r717,%r718,%r719,%r720
+	.loc	1 59 9                          // rmsnorm_linear_kernel.py:59:9
 	wgmma.wait_group.sync.aligned 0;
 
 	// end inline asm
 	bar.sync 	0;
-	elect.sync 	%r179|%p44, -1;
-	and.pred 	%p37, %p13, %p44;
+	elect.sync 	%r394|%p42, -1;
+	and.pred 	%p37, %p13, %p42;
 	// begin inline asm
-	@%p37 mbarrier.inval.shared::cta.b64 [%r62];
+	@%p37 mbarrier.inval.shared::cta.b64 [%r110];
 
 	// end inline asm
-	elect.sync 	%r180|%p45, -1;
-	and.pred 	%p38, %p13, %p45;
+	elect.sync 	%r395|%p43, -1;
+	and.pred 	%p38, %p13, %p43;
 	// begin inline asm
-	@%p38 mbarrier.inval.shared::cta.b64 [%r63];
+	@%p38 mbarrier.inval.shared::cta.b64 [%r111];
 
 	// end inline asm
-	elect.sync 	%r181|%p46, -1;
-	and.pred 	%p39, %p13, %p46;
+	elect.sync 	%r396|%p44, -1;
+	and.pred 	%p39, %p13, %p44;
 	// begin inline asm
-	@%p39 mbarrier.inval.shared::cta.b64 [%r64];
+	@%p39 mbarrier.inval.shared::cta.b64 [%r112];
 
 	// end inline asm
-	elect.sync 	%r182|%p47, -1;
-	and.pred 	%p40, %p13, %p47;
+	elect.sync 	%r397|%p45, -1;
+	and.pred 	%p40, %p13, %p45;
 	// begin inline asm
-	@%p40 mbarrier.inval.shared::cta.b64 [%r60];
+	@%p40 mbarrier.inval.shared::cta.b64 [%r108];
 
 	// end inline asm
-	elect.sync 	%r183|%p48, -1;
-	and.pred 	%p41, %p13, %p48;
+	elect.sync 	%r398|%p46, -1;
+	and.pred 	%p41, %p13, %p46;
 	// begin inline asm
-	@%p41 mbarrier.inval.shared::cta.b64 [%r61];
+	@%p41 mbarrier.inval.shared::cta.b64 [%r109];
 
 	// end inline asm
-	.loc	1 105 20                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:105:20
-	shfl.sync.bfly.b32 	%r184, %r401, 2, 31, -1;
-	.loc	1 107 14                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:107:14
-	add.f32 	%r185, %r401, %r184;
-	.loc	1 105 20                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:105:20
-	shfl.sync.bfly.b32 	%r186, %r185, 1, 31, -1;
-	.loc	1 107 14                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:107:14
-	add.f32 	%r187, %r185, %r186;
-	.loc	1 105 20                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:105:20
-	shfl.sync.bfly.b32 	%r188, %r402, 2, 31, -1;
-	.loc	1 107 14                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:107:14
-	add.f32 	%r189, %r402, %r188;
-	.loc	1 105 20                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:105:20
-	shfl.sync.bfly.b32 	%r190, %r189, 1, 31, -1;
-	.loc	1 107 14                        // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:107:14
-	add.f32 	%r191, %r189, %r190;
-	.loc	1 71 15                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:71:15
-	fma.rn.f32 	%r192, %r187, 0f39800000, %r25;
-	fma.rn.f32 	%r193, %r191, 0f39800000, %r25;
-	.loc	1 72 15                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:72:15
-	rsqrt.approx.ftz.f32 	%r194, %r192;
-	rsqrt.approx.ftz.f32 	%r195, %r193;
-	.loc	1 75 15                         // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:75:15
-	mul.f32 	%r196, %r403, %r194;
-	mul.f32 	%r197, %r404, %r194;
-	mul.f32 	%r198, %r405, %r195;
-	mul.f32 	%r199, %r406, %r195;
-	mul.f32 	%r200, %r407, %r194;
-	mul.f32 	%r201, %r408, %r194;
-	mul.f32 	%r202, %r409, %r195;
-	mul.f32 	%r203, %r410, %r195;
-	mul.f32 	%r204, %r411, %r194;
-	mul.f32 	%r205, %r412, %r194;
-	mul.f32 	%r206, %r413, %r195;
-	mul.f32 	%r207, %r414, %r195;
-	mul.f32 	%r208, %r415, %r194;
-	mul.f32 	%r209, %r416, %r194;
-	mul.f32 	%r210, %r417, %r195;
-	mul.f32 	%r211, %r418, %r195;
-	mul.f32 	%r212, %r419, %r194;
-	mul.f32 	%r213, %r420, %r194;
-	mul.f32 	%r214, %r421, %r195;
-	mul.f32 	%r215, %r422, %r195;
-	mul.f32 	%r216, %r423, %r194;
-	mul.f32 	%r217, %r424, %r194;
-	mul.f32 	%r218, %r425, %r195;
-	mul.f32 	%r219, %r426, %r195;
-	mul.f32 	%r220, %r427, %r194;
-	mul.f32 	%r221, %r428, %r194;
-	mul.f32 	%r222, %r429, %r195;
-	mul.f32 	%r223, %r430, %r195;
-	mul.f32 	%r224, %r431, %r194;
-	mul.f32 	%r225, %r432, %r194;
-	mul.f32 	%r226, %r433, %r195;
-	mul.f32 	%r227, %r434, %r195;
-	mul.f32 	%r228, %r435, %r194;
-	mul.f32 	%r229, %r436, %r194;
-	mul.f32 	%r230, %r437, %r195;
-	mul.f32 	%r231, %r438, %r195;
-	mul.f32 	%r232, %r439, %r194;
-	mul.f32 	%r233, %r440, %r194;
-	mul.f32 	%r234, %r441, %r195;
-	mul.f32 	%r235, %r442, %r195;
-	mul.f32 	%r236, %r443, %r194;
-	mul.f32 	%r237, %r444, %r194;
-	mul.f32 	%r238, %r445, %r195;
-	mul.f32 	%r239, %r446, %r195;
-	mul.f32 	%r240, %r447, %r194;
-	mul.f32 	%r241, %r448, %r194;
-	mul.f32 	%r242, %r449, %r195;
-	mul.f32 	%r243, %r450, %r195;
-	mul.f32 	%r244, %r451, %r194;
-	mul.f32 	%r245, %r452, %r194;
-	mul.f32 	%r246, %r453, %r195;
-	mul.f32 	%r247, %r454, %r195;
-	mul.f32 	%r248, %r455, %r194;
-	mul.f32 	%r249, %r456, %r194;
-	mul.f32 	%r250, %r457, %r195;
-	mul.f32 	%r251, %r458, %r195;
-	mul.f32 	%r252, %r459, %r194;
-	mul.f32 	%r253, %r460, %r194;
-	mul.f32 	%r254, %r461, %r195;
-	mul.f32 	%r255, %r462, %r195;
-	mul.f32 	%r256, %r463, %r194;
-	mul.f32 	%r257, %r464, %r194;
-	mul.f32 	%r258, %r465, %r195;
-	mul.f32 	%r259, %r466, %r195;
-	mul.f32 	%r260, %r467, %r194;
-	mul.f32 	%r261, %r468, %r194;
-	mul.f32 	%r262, %r469, %r195;
-	mul.f32 	%r263, %r470, %r195;
-	mul.f32 	%r264, %r471, %r194;
-	mul.f32 	%r265, %r472, %r194;
-	mul.f32 	%r266, %r473, %r195;
-	mul.f32 	%r267, %r474, %r195;
-	mul.f32 	%r268, %r475, %r194;
-	mul.f32 	%r269, %r476, %r194;
-	mul.f32 	%r270, %r477, %r195;
-	mul.f32 	%r271, %r478, %r195;
-	mul.f32 	%r272, %r479, %r194;
-	mul.f32 	%r273, %r480, %r194;
-	mul.f32 	%r274, %r481, %r195;
-	mul.f32 	%r275, %r482, %r195;
-	mul.f32 	%r276, %r483, %r194;
-	mul.f32 	%r277, %r484, %r194;
-	mul.f32 	%r278, %r485, %r195;
-	mul.f32 	%r279, %r486, %r195;
-	mul.f32 	%r280, %r487, %r194;
-	mul.f32 	%r281, %r488, %r194;
-	mul.f32 	%r282, %r489, %r195;
-	mul.f32 	%r283, %r490, %r195;
-	mul.f32 	%r284, %r491, %r194;
-	mul.f32 	%r285, %r492, %r194;
-	mul.f32 	%r286, %r493, %r195;
-	mul.f32 	%r287, %r494, %r195;
-	mul.f32 	%r288, %r495, %r194;
-	mul.f32 	%r289, %r496, %r194;
-	mul.f32 	%r290, %r497, %r195;
-	mul.f32 	%r291, %r498, %r195;
-	mul.f32 	%r292, %r499, %r194;
-	mul.f32 	%r293, %r500, %r194;
-	mul.f32 	%r294, %r501, %r195;
-	mul.f32 	%r295, %r502, %r195;
-	mul.f32 	%r296, %r503, %r194;
-	mul.f32 	%r297, %r504, %r194;
-	mul.f32 	%r298, %r505, %r195;
-	mul.f32 	%r299, %r506, %r195;
-	mul.f32 	%r300, %r507, %r194;
-	mul.f32 	%r301, %r508, %r194;
-	mul.f32 	%r302, %r509, %r195;
-	mul.f32 	%r303, %r510, %r195;
-	mul.f32 	%r304, %r511, %r194;
-	mul.f32 	%r305, %r512, %r194;
-	mul.f32 	%r306, %r513, %r195;
-	mul.f32 	%r307, %r514, %r195;
-	mul.f32 	%r308, %r515, %r194;
-	mul.f32 	%r309, %r516, %r194;
-	mul.f32 	%r310, %r517, %r195;
-	mul.f32 	%r311, %r518, %r195;
-	mul.f32 	%r312, %r519, %r194;
-	mul.f32 	%r313, %r520, %r194;
-	mul.f32 	%r314, %r521, %r195;
-	mul.f32 	%r315, %r522, %r195;
-	mul.f32 	%r316, %r523, %r194;
-	mul.f32 	%r317, %r524, %r194;
-	mul.f32 	%r318, %r525, %r195;
-	mul.f32 	%r319, %r526, %r195;
-	mul.f32 	%r320, %r527, %r194;
-	mul.f32 	%r321, %r528, %r194;
-	mul.f32 	%r322, %r529, %r195;
-	mul.f32 	%r323, %r530, %r195;
-	.loc	1 78 9                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:78:9
-	cp.async.bulk.wait_group.read 	0;
+	.loc	1 47 22                         // rmsnorm_linear_kernel.py:47:22
+	or.b32 	%r399, %r36, %r5;
+	or.b32 	%r400, %r36, %r6;
+	or.b32 	%r401, %r36, %r7;
+	or.b32 	%r402, %r36, %r8;
+	or.b32 	%r403, %r36, %r9;
+	or.b32 	%r404, %r36, %r10;
+	or.b32 	%r405, %r36, %r11;
+	or.b32 	%r406, %r36, %r12;
+	or.b32 	%r407, %r36, %r13;
+	or.b32 	%r408, %r36, %r14;
+	or.b32 	%r409, %r36, %r15;
+	or.b32 	%r410, %r36, %r16;
+	or.b32 	%r411, %r36, %r17;
+	or.b32 	%r412, %r36, %r18;
+	or.b32 	%r413, %r36, %r19;
+	or.b32 	%r414, %r36, %r20;
+	.loc	1 84 25                         // rmsnorm_linear_kernel.py:84:25
+	shl.b32 	%r415, %r399, 12;
+	shl.b32 	%r416, %r400, 12;
+	shl.b32 	%r417, %r401, 12;
+	shl.b32 	%r418, %r402, 12;
+	shl.b32 	%r419, %r403, 12;
+	shl.b32 	%r420, %r404, 12;
+	shl.b32 	%r421, %r405, 12;
+	shl.b32 	%r422, %r406, 12;
+	shl.b32 	%r423, %r407, 12;
+	shl.b32 	%r424, %r408, 12;
+	shl.b32 	%r425, %r409, 12;
+	shl.b32 	%r426, %r410, 12;
+	shl.b32 	%r427, %r411, 12;
+	shl.b32 	%r428, %r412, 12;
+	shl.b32 	%r429, %r413, 12;
+	shl.b32 	%r430, %r414, 12;
+	.loc	1 49 22                         // rmsnorm_linear_kernel.py:49:22
+	or.b32 	%r431, %r37, %r21;
+	.loc	1 84 25                         // rmsnorm_linear_kernel.py:84:25
+	add.s32 	%r432, %r415, %r431;
+	add.s32 	%r433, %r416, %r431;
+	add.s32 	%r434, %r417, %r431;
+	add.s32 	%r435, %r418, %r431;
+	add.s32 	%r436, %r419, %r431;
+	add.s32 	%r437, %r420, %r431;
+	add.s32 	%r438, %r421, %r431;
+	add.s32 	%r439, %r422, %r431;
+	add.s32 	%r440, %r423, %r431;
+	add.s32 	%r441, %r424, %r431;
+	add.s32 	%r442, %r425, %r431;
+	add.s32 	%r443, %r426, %r431;
+	add.s32 	%r444, %r427, %r431;
+	add.s32 	%r445, %r428, %r431;
+	add.s32 	%r446, %r429, %r431;
+	add.s32 	%r447, %r430, %r431;
+	.loc	1 84 18                         // rmsnorm_linear_kernel.py:84:18
+	mad.wide.s32 	%rd25, %r432, 2, %rd1;
+	mad.wide.s32 	%rd26, %r433, 2, %rd1;
+	mad.wide.s32 	%rd27, %r434, 2, %rd1;
+	mad.wide.s32 	%rd28, %r435, 2, %rd1;
+	mad.wide.s32 	%rd29, %r436, 2, %rd1;
+	mad.wide.s32 	%rd30, %r437, 2, %rd1;
+	mad.wide.s32 	%rd31, %r438, 2, %rd1;
+	mad.wide.s32 	%rd32, %r439, 2, %rd1;
+	mad.wide.s32 	%rd33, %r440, 2, %rd1;
+	mad.wide.s32 	%rd34, %r441, 2, %rd1;
+	mad.wide.s32 	%rd35, %r442, 2, %rd1;
+	mad.wide.s32 	%rd36, %r443, 2, %rd1;
+	mad.wide.s32 	%rd37, %r444, 2, %rd1;
+	mad.wide.s32 	%rd38, %r445, 2, %rd1;
+	mad.wide.s32 	%rd39, %r446, 2, %rd1;
+	mad.wide.s32 	%rd40, %r447, 2, %rd1;
+	.loc	1 77 15                         // rmsnorm_linear_kernel.py:77:15
+	fma.rn.f32 	%r448, %r589, 0f39800000, %r38;
+	fma.rn.f32 	%r449, %r590, 0f39800000, %r38;
+	fma.rn.f32 	%r450, %r591, 0f39800000, %r38;
+	fma.rn.f32 	%r451, %r592, 0f39800000, %r38;
+	.loc	1 78 15                         // rmsnorm_linear_kernel.py:78:15
+	rsqrt.approx.ftz.f32 	%r254, %r448;
+	rsqrt.approx.ftz.f32 	%r255, %r449;
+	rsqrt.approx.ftz.f32 	%r256, %r450;
+	rsqrt.approx.ftz.f32 	%r257, %r451;
+	.loc	1 81 15                         // rmsnorm_linear_kernel.py:81:15
+	// begin inline asm
+	.loc	1 81 15                         // rmsnorm_linear_kernel.py:81:15
+	st.shared::cta.v4.b32 [ %r253 + 0 ], { %r254, %r255, %r256, %r257 };
+
+	// end inline asm
 	bar.sync 	0;
-	cvt.rn.bf16x2.f32 	%r324, %r197, %r196;
-	cvt.rn.bf16x2.f32 	%r325, %r199, %r198;
-	cvt.rn.bf16x2.f32 	%r326, %r201, %r200;
-	cvt.rn.bf16x2.f32 	%r327, %r203, %r202;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r9], {%r324, %r325, %r326, %r327};
-	cvt.rn.bf16x2.f32 	%r328, %r229, %r228;
-	cvt.rn.bf16x2.f32 	%r329, %r231, %r230;
-	cvt.rn.bf16x2.f32 	%r330, %r233, %r232;
-	cvt.rn.bf16x2.f32 	%r331, %r235, %r234;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r10], {%r328, %r329, %r330, %r331};
-	cvt.rn.bf16x2.f32 	%r332, %r261, %r260;
-	cvt.rn.bf16x2.f32 	%r333, %r263, %r262;
-	cvt.rn.bf16x2.f32 	%r334, %r265, %r264;
-	cvt.rn.bf16x2.f32 	%r335, %r267, %r266;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r11], {%r332, %r333, %r334, %r335};
-	cvt.rn.bf16x2.f32 	%r336, %r293, %r292;
-	cvt.rn.bf16x2.f32 	%r337, %r295, %r294;
-	cvt.rn.bf16x2.f32 	%r338, %r297, %r296;
-	cvt.rn.bf16x2.f32 	%r339, %r299, %r298;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r12], {%r336, %r337, %r338, %r339};
-	cvt.rn.bf16x2.f32 	%r340, %r205, %r204;
-	cvt.rn.bf16x2.f32 	%r341, %r207, %r206;
-	cvt.rn.bf16x2.f32 	%r342, %r209, %r208;
-	cvt.rn.bf16x2.f32 	%r343, %r211, %r210;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r13], {%r340, %r341, %r342, %r343};
-	cvt.rn.bf16x2.f32 	%r344, %r237, %r236;
-	cvt.rn.bf16x2.f32 	%r345, %r239, %r238;
-	cvt.rn.bf16x2.f32 	%r346, %r241, %r240;
-	cvt.rn.bf16x2.f32 	%r347, %r243, %r242;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r14], {%r344, %r345, %r346, %r347};
-	cvt.rn.bf16x2.f32 	%r348, %r269, %r268;
-	cvt.rn.bf16x2.f32 	%r349, %r271, %r270;
-	cvt.rn.bf16x2.f32 	%r350, %r273, %r272;
-	cvt.rn.bf16x2.f32 	%r351, %r275, %r274;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r15], {%r348, %r349, %r350, %r351};
-	cvt.rn.bf16x2.f32 	%r352, %r301, %r300;
-	cvt.rn.bf16x2.f32 	%r353, %r303, %r302;
-	cvt.rn.bf16x2.f32 	%r354, %r305, %r304;
-	cvt.rn.bf16x2.f32 	%r355, %r307, %r306;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r16], {%r352, %r353, %r354, %r355};
-	cvt.rn.bf16x2.f32 	%r356, %r213, %r212;
-	cvt.rn.bf16x2.f32 	%r357, %r215, %r214;
-	cvt.rn.bf16x2.f32 	%r358, %r217, %r216;
-	cvt.rn.bf16x2.f32 	%r359, %r219, %r218;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r17], {%r356, %r357, %r358, %r359};
-	cvt.rn.bf16x2.f32 	%r360, %r245, %r244;
-	cvt.rn.bf16x2.f32 	%r361, %r247, %r246;
-	cvt.rn.bf16x2.f32 	%r362, %r249, %r248;
-	cvt.rn.bf16x2.f32 	%r363, %r251, %r250;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r18], {%r360, %r361, %r362, %r363};
-	cvt.rn.bf16x2.f32 	%r364, %r277, %r276;
-	cvt.rn.bf16x2.f32 	%r365, %r279, %r278;
-	cvt.rn.bf16x2.f32 	%r366, %r281, %r280;
-	cvt.rn.bf16x2.f32 	%r367, %r283, %r282;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r19], {%r364, %r365, %r366, %r367};
-	cvt.rn.bf16x2.f32 	%r368, %r309, %r308;
-	cvt.rn.bf16x2.f32 	%r369, %r311, %r310;
-	cvt.rn.bf16x2.f32 	%r370, %r313, %r312;
-	cvt.rn.bf16x2.f32 	%r371, %r315, %r314;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r20], {%r368, %r369, %r370, %r371};
-	cvt.rn.bf16x2.f32 	%r372, %r221, %r220;
-	cvt.rn.bf16x2.f32 	%r373, %r223, %r222;
-	cvt.rn.bf16x2.f32 	%r374, %r225, %r224;
-	cvt.rn.bf16x2.f32 	%r375, %r227, %r226;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r21], {%r372, %r373, %r374, %r375};
-	cvt.rn.bf16x2.f32 	%r376, %r253, %r252;
-	cvt.rn.bf16x2.f32 	%r377, %r255, %r254;
-	cvt.rn.bf16x2.f32 	%r378, %r257, %r256;
-	cvt.rn.bf16x2.f32 	%r379, %r259, %r258;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r22], {%r376, %r377, %r378, %r379};
-	cvt.rn.bf16x2.f32 	%r380, %r285, %r284;
-	cvt.rn.bf16x2.f32 	%r381, %r287, %r286;
-	cvt.rn.bf16x2.f32 	%r382, %r289, %r288;
-	cvt.rn.bf16x2.f32 	%r383, %r291, %r290;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r23], {%r380, %r381, %r382, %r383};
-	cvt.rn.bf16x2.f32 	%r384, %r317, %r316;
-	cvt.rn.bf16x2.f32 	%r385, %r319, %r318;
-	cvt.rn.bf16x2.f32 	%r386, %r321, %r320;
-	cvt.rn.bf16x2.f32 	%r387, %r323, %r322;
-	stmatrix.sync.aligned.m8n8.x4.shared.b16 [%r24], {%r384, %r385, %r386, %r387};
-	fence.proxy.async.shared::cta;
+	ld.shared.b32 	%r452, [%r27];
+	ld.shared.b32 	%r453, [%r27+128];
+	mul.f32 	%r454, %r593, %r452;
+	mul.f32 	%r455, %r594, %r452;
+	mul.f32 	%r456, %r595, %r453;
+	mul.f32 	%r457, %r596, %r453;
+	mul.f32 	%r458, %r597, %r452;
+	mul.f32 	%r459, %r598, %r452;
+	mul.f32 	%r460, %r599, %r453;
+	mul.f32 	%r461, %r600, %r453;
+	mul.f32 	%r462, %r601, %r452;
+	mul.f32 	%r463, %r602, %r452;
+	mul.f32 	%r464, %r603, %r453;
+	mul.f32 	%r465, %r604, %r453;
+	mul.f32 	%r466, %r605, %r452;
+	mul.f32 	%r467, %r606, %r452;
+	mul.f32 	%r468, %r607, %r453;
+	mul.f32 	%r469, %r608, %r453;
+	mul.f32 	%r470, %r609, %r452;
+	mul.f32 	%r471, %r610, %r452;
+	mul.f32 	%r472, %r611, %r453;
+	mul.f32 	%r473, %r612, %r453;
+	mul.f32 	%r474, %r613, %r452;
+	mul.f32 	%r475, %r614, %r452;
+	mul.f32 	%r476, %r615, %r453;
+	mul.f32 	%r477, %r616, %r453;
+	mul.f32 	%r478, %r617, %r452;
+	mul.f32 	%r479, %r618, %r452;
+	mul.f32 	%r480, %r619, %r453;
+	mul.f32 	%r481, %r620, %r453;
+	mul.f32 	%r482, %r621, %r452;
+	mul.f32 	%r483, %r622, %r452;
+	mul.f32 	%r484, %r623, %r453;
+	mul.f32 	%r485, %r624, %r453;
+	mul.f32 	%r486, %r625, %r452;
+	mul.f32 	%r487, %r626, %r452;
+	mul.f32 	%r488, %r627, %r453;
+	mul.f32 	%r489, %r628, %r453;
+	mul.f32 	%r490, %r629, %r452;
+	mul.f32 	%r491, %r630, %r452;
+	mul.f32 	%r492, %r631, %r453;
+	mul.f32 	%r493, %r632, %r453;
+	mul.f32 	%r494, %r633, %r452;
+	mul.f32 	%r495, %r634, %r452;
+	mul.f32 	%r496, %r635, %r453;
+	mul.f32 	%r497, %r636, %r453;
+	mul.f32 	%r498, %r637, %r452;
+	mul.f32 	%r499, %r638, %r452;
+	mul.f32 	%r500, %r639, %r453;
+	mul.f32 	%r501, %r640, %r453;
+	mul.f32 	%r502, %r641, %r452;
+	mul.f32 	%r503, %r642, %r452;
+	mul.f32 	%r504, %r643, %r453;
+	mul.f32 	%r505, %r644, %r453;
+	mul.f32 	%r506, %r645, %r452;
+	mul.f32 	%r507, %r646, %r452;
+	mul.f32 	%r508, %r647, %r453;
+	mul.f32 	%r509, %r648, %r453;
+	mul.f32 	%r510, %r649, %r452;
+	mul.f32 	%r511, %r650, %r452;
+	mul.f32 	%r512, %r651, %r453;
+	mul.f32 	%r513, %r652, %r453;
+	mul.f32 	%r514, %r653, %r452;
+	mul.f32 	%r515, %r654, %r452;
+	mul.f32 	%r516, %r655, %r453;
+	mul.f32 	%r517, %r656, %r453;
+	mul.f32 	%r518, %r657, %r452;
+	mul.f32 	%r519, %r658, %r452;
+	mul.f32 	%r520, %r659, %r453;
+	mul.f32 	%r521, %r660, %r453;
+	mul.f32 	%r522, %r661, %r452;
+	mul.f32 	%r523, %r662, %r452;
+	mul.f32 	%r524, %r663, %r453;
+	mul.f32 	%r525, %r664, %r453;
+	mul.f32 	%r526, %r665, %r452;
+	mul.f32 	%r527, %r666, %r452;
+	mul.f32 	%r528, %r667, %r453;
+	mul.f32 	%r529, %r668, %r453;
+	mul.f32 	%r530, %r669, %r452;
+	mul.f32 	%r531, %r670, %r452;
+	mul.f32 	%r532, %r671, %r453;
+	mul.f32 	%r533, %r672, %r453;
+	mul.f32 	%r534, %r673, %r452;
+	mul.f32 	%r535, %r674, %r452;
+	mul.f32 	%r536, %r675, %r453;
+	mul.f32 	%r537, %r676, %r453;
+	mul.f32 	%r538, %r677, %r452;
+	mul.f32 	%r539, %r678, %r452;
+	mul.f32 	%r540, %r679, %r453;
+	mul.f32 	%r541, %r680, %r453;
+	mul.f32 	%r542, %r681, %r452;
+	mul.f32 	%r543, %r682, %r452;
+	mul.f32 	%r544, %r683, %r453;
+	mul.f32 	%r545, %r684, %r453;
+	mul.f32 	%r546, %r685, %r452;
+	mul.f32 	%r547, %r686, %r452;
+	mul.f32 	%r548, %r687, %r453;
+	mul.f32 	%r549, %r688, %r453;
+	mul.f32 	%r550, %r689, %r452;
+	mul.f32 	%r551, %r690, %r452;
+	mul.f32 	%r552, %r691, %r453;
+	mul.f32 	%r553, %r692, %r453;
+	mul.f32 	%r554, %r693, %r452;
+	mul.f32 	%r555, %r694, %r452;
+	mul.f32 	%r556, %r695, %r453;
+	mul.f32 	%r557, %r696, %r453;
+	mul.f32 	%r558, %r697, %r452;
+	mul.f32 	%r559, %r698, %r452;
+	mul.f32 	%r560, %r699, %r453;
+	mul.f32 	%r561, %r700, %r453;
+	mul.f32 	%r562, %r701, %r452;
+	mul.f32 	%r563, %r702, %r452;
+	mul.f32 	%r564, %r703, %r453;
+	mul.f32 	%r565, %r704, %r453;
+	mul.f32 	%r566, %r705, %r452;
+	mul.f32 	%r567, %r706, %r452;
+	mul.f32 	%r568, %r707, %r453;
+	mul.f32 	%r569, %r708, %r453;
+	mul.f32 	%r570, %r709, %r452;
+	mul.f32 	%r571, %r710, %r452;
+	mul.f32 	%r572, %r711, %r453;
+	mul.f32 	%r573, %r712, %r453;
+	mul.f32 	%r574, %r713, %r452;
+	mul.f32 	%r575, %r714, %r452;
+	mul.f32 	%r576, %r715, %r453;
+	mul.f32 	%r577, %r716, %r453;
+	mul.f32 	%r578, %r717, %r452;
+	mul.f32 	%r579, %r718, %r452;
+	mul.f32 	%r580, %r719, %r453;
+	mul.f32 	%r581, %r720, %r453;
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
 	bar.sync 	0;
-	elect.sync 	%r388|%p49, -1;
-	shfl.sync.idx.b32 	%r389, %r4, 0, 31, -1;
-	and.pred 	%p42, %p43, %p49;
-	and.b32 	%r390, %r389, 3;
-	shl.b32 	%r391, %r390, 14;
-	add.s32 	%r392, %r39, %r391;
-	add.s32 	%r178, %r392, 98304;
-	shl.b32 	%r393, %r390, 6;
-	or.b32 	%r176, %r393, %r67;
+	cvt.rn.bf16x2.f32 	%r259, %r455, %r454;
+	cvt.rn.bf16x2.f32 	%r260, %r459, %r458;
+	cvt.rn.bf16x2.f32 	%r261, %r463, %r462;
+	cvt.rn.bf16x2.f32 	%r262, %r467, %r466;
 	// begin inline asm
-	@%p42 cp.async.bulk.tensor.2d.global.shared::cta.bulk_group [%rd29, {%r176, %r177}], [%r178];
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r258 + 0 ], { %r259, %r260, %r261, %r262 };
 
 	// end inline asm
-	cp.async.bulk.commit_group;
-	.loc	1 37 5                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:37:5
-	add.s32 	%r394, %r394, 1;
-	setp.ne.b32 	%p50, %r394, %r3;
-	@%p50 bra 	$L__BB0_2;
+	cvt.rn.bf16x2.f32 	%r264, %r471, %r470;
+	cvt.rn.bf16x2.f32 	%r265, %r475, %r474;
+	cvt.rn.bf16x2.f32 	%r266, %r479, %r478;
+	cvt.rn.bf16x2.f32 	%r267, %r483, %r482;
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r263 + 0 ], { %r264, %r265, %r266, %r267 };
+
+	// end inline asm
+	cvt.rn.bf16x2.f32 	%r269, %r487, %r486;
+	cvt.rn.bf16x2.f32 	%r270, %r491, %r490;
+	cvt.rn.bf16x2.f32 	%r271, %r495, %r494;
+	cvt.rn.bf16x2.f32 	%r272, %r499, %r498;
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r268 + 0 ], { %r269, %r270, %r271, %r272 };
+
+	// end inline asm
+	cvt.rn.bf16x2.f32 	%r274, %r503, %r502;
+	cvt.rn.bf16x2.f32 	%r275, %r507, %r506;
+	cvt.rn.bf16x2.f32 	%r276, %r511, %r510;
+	cvt.rn.bf16x2.f32 	%r277, %r515, %r514;
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r273 + 0 ], { %r274, %r275, %r276, %r277 };
+
+	// end inline asm
+	cvt.rn.bf16x2.f32 	%r279, %r519, %r518;
+	cvt.rn.bf16x2.f32 	%r280, %r523, %r522;
+	cvt.rn.bf16x2.f32 	%r281, %r527, %r526;
+	cvt.rn.bf16x2.f32 	%r282, %r531, %r530;
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r278 + 0 ], { %r279, %r280, %r281, %r282 };
+
+	// end inline asm
+	cvt.rn.bf16x2.f32 	%r284, %r535, %r534;
+	cvt.rn.bf16x2.f32 	%r285, %r539, %r538;
+	cvt.rn.bf16x2.f32 	%r286, %r543, %r542;
+	cvt.rn.bf16x2.f32 	%r287, %r547, %r546;
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r283 + 0 ], { %r284, %r285, %r286, %r287 };
+
+	// end inline asm
+	cvt.rn.bf16x2.f32 	%r289, %r551, %r550;
+	cvt.rn.bf16x2.f32 	%r290, %r555, %r554;
+	cvt.rn.bf16x2.f32 	%r291, %r559, %r558;
+	cvt.rn.bf16x2.f32 	%r292, %r563, %r562;
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r288 + 0 ], { %r289, %r290, %r291, %r292 };
+
+	// end inline asm
+	cvt.rn.bf16x2.f32 	%r294, %r567, %r566;
+	cvt.rn.bf16x2.f32 	%r295, %r571, %r570;
+	cvt.rn.bf16x2.f32 	%r296, %r575, %r574;
+	cvt.rn.bf16x2.f32 	%r297, %r579, %r578;
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r293 + 0 ], { %r294, %r295, %r296, %r297 };
+
+	// end inline asm
+	bar.sync 	0;
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r330, %r331, %r332, %r333}, [%r28];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r338, %r339, %r340, %r341}, [%r29];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r346, %r347, %r348, %r349}, [%r30];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r354, %r355, %r356, %r357}, [%r31];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r362, %r363, %r364, %r365}, [%r32];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r370, %r371, %r372, %r373}, [%r33];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r378, %r379, %r380, %r381}, [%r34];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r386, %r387, %r388, %r389}, [%r35];
+	bar.sync 	0;
+	cvt.rn.bf16x2.f32 	%r298, %r457, %r456;
+	cvt.rn.bf16x2.f32 	%r299, %r461, %r460;
+	cvt.rn.bf16x2.f32 	%r300, %r465, %r464;
+	cvt.rn.bf16x2.f32 	%r301, %r469, %r468;
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r258 + 0 ], { %r298, %r299, %r300, %r301 };
+
+	// end inline asm
+	cvt.rn.bf16x2.f32 	%r302, %r473, %r472;
+	cvt.rn.bf16x2.f32 	%r303, %r477, %r476;
+	cvt.rn.bf16x2.f32 	%r304, %r481, %r480;
+	cvt.rn.bf16x2.f32 	%r305, %r485, %r484;
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r263 + 0 ], { %r302, %r303, %r304, %r305 };
+
+	// end inline asm
+	cvt.rn.bf16x2.f32 	%r306, %r489, %r488;
+	cvt.rn.bf16x2.f32 	%r307, %r493, %r492;
+	cvt.rn.bf16x2.f32 	%r308, %r497, %r496;
+	cvt.rn.bf16x2.f32 	%r309, %r501, %r500;
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r268 + 0 ], { %r306, %r307, %r308, %r309 };
+
+	// end inline asm
+	cvt.rn.bf16x2.f32 	%r310, %r505, %r504;
+	cvt.rn.bf16x2.f32 	%r311, %r509, %r508;
+	cvt.rn.bf16x2.f32 	%r312, %r513, %r512;
+	cvt.rn.bf16x2.f32 	%r313, %r517, %r516;
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r273 + 0 ], { %r310, %r311, %r312, %r313 };
+
+	// end inline asm
+	cvt.rn.bf16x2.f32 	%r314, %r521, %r520;
+	cvt.rn.bf16x2.f32 	%r315, %r525, %r524;
+	cvt.rn.bf16x2.f32 	%r316, %r529, %r528;
+	cvt.rn.bf16x2.f32 	%r317, %r533, %r532;
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r278 + 0 ], { %r314, %r315, %r316, %r317 };
+
+	// end inline asm
+	cvt.rn.bf16x2.f32 	%r318, %r537, %r536;
+	cvt.rn.bf16x2.f32 	%r319, %r541, %r540;
+	cvt.rn.bf16x2.f32 	%r320, %r545, %r544;
+	cvt.rn.bf16x2.f32 	%r321, %r549, %r548;
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r283 + 0 ], { %r318, %r319, %r320, %r321 };
+
+	// end inline asm
+	cvt.rn.bf16x2.f32 	%r322, %r553, %r552;
+	cvt.rn.bf16x2.f32 	%r323, %r557, %r556;
+	cvt.rn.bf16x2.f32 	%r324, %r561, %r560;
+	cvt.rn.bf16x2.f32 	%r325, %r565, %r564;
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r288 + 0 ], { %r322, %r323, %r324, %r325 };
+
+	// end inline asm
+	cvt.rn.bf16x2.f32 	%r326, %r569, %r568;
+	cvt.rn.bf16x2.f32 	%r327, %r573, %r572;
+	cvt.rn.bf16x2.f32 	%r328, %r577, %r576;
+	cvt.rn.bf16x2.f32 	%r329, %r581, %r580;
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.shared::cta.v4.b32 [ %r293 + 0 ], { %r326, %r327, %r328, %r329 };
+
+	// end inline asm
+	bar.sync 	0;
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r334, %r335, %r336, %r337}, [%r28];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r342, %r343, %r344, %r345}, [%r29];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r350, %r351, %r352, %r353}, [%r30];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r358, %r359, %r360, %r361}, [%r31];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r366, %r367, %r368, %r369}, [%r32];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r374, %r375, %r376, %r377}, [%r33];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r382, %r383, %r384, %r385}, [%r34];
+	ldmatrix.sync.aligned.m8n8.x4.shared.b16 {%r390, %r391, %r392, %r393}, [%r35];
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd25 + 0 ], { %r330, %r331, %r332, %r333 };
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd26 + 0 ], { %r334, %r335, %r336, %r337 };
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd27 + 0 ], { %r338, %r339, %r340, %r341 };
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd28 + 0 ], { %r342, %r343, %r344, %r345 };
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd29 + 0 ], { %r346, %r347, %r348, %r349 };
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd30 + 0 ], { %r350, %r351, %r352, %r353 };
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd31 + 0 ], { %r354, %r355, %r356, %r357 };
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd32 + 0 ], { %r358, %r359, %r360, %r361 };
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd33 + 0 ], { %r362, %r363, %r364, %r365 };
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd34 + 0 ], { %r366, %r367, %r368, %r369 };
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd35 + 0 ], { %r370, %r371, %r372, %r373 };
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd36 + 0 ], { %r374, %r375, %r376, %r377 };
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd37 + 0 ], { %r378, %r379, %r380, %r381 };
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd38 + 0 ], { %r382, %r383, %r384, %r385 };
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd39 + 0 ], { %r386, %r387, %r388, %r389 };
+
+	// end inline asm
+	// begin inline asm
+	.loc	1 84 9                          // rmsnorm_linear_kernel.py:84:9
+	st.global.v4.b32 [ %rd40 + 0 ], { %r390, %r391, %r392, %r393 };
+
+	// end inline asm
+	.loc	1 35 5                          // rmsnorm_linear_kernel.py:35:5
+	add.s32 	%r582, %r582, 1;
+	setp.ne.b32 	%p47, %r582, %r1;
+	@%p47 bra 	$L__BB0_2;
 $L__BB0_5:                              // %._crit_edge
-	cp.async.bulk.wait_group 	0;
-	bar.sync 	0;
-	.loc	1 20 1                          // cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py:20:1
+	.loc	1 20 1                          // rmsnorm_linear_kernel.py:20:1
 	ret;
-$L__tmp1:
+$L__tmp3:
 $L__func_end0:
                                         // -- End function
 }
-	.file	1 "/tmp/torchinductor_wangke61/gk/cgkjnt7qu4ajuarebji3vtpb6h3yyov7p3voyuwccegtxvj3h2yf.py"
+	.file	1 "/home/wangke61/tpot/demo/rmsnorm_linear_kernel.py"
+	.file	2 "/opt/conda/lib/python3.11/site-packages/triton/language/standard.py"
 	.section	.debug_abbrev
 	{
 .b8 1                                   // Abbreviation Code
 .b8 17                                  // DW_TAG_compile_unit
-.b8 0                                   // DW_CHILDREN_no
+.b8 1                                   // DW_CHILDREN_yes
 .b8 37                                  // DW_AT_producer
 .b8 8                                   // DW_FORM_string
 .b8 19                                  // DW_AT_language
@@ -1106,16 +1430,53 @@ $L__func_end0:
 .b8 8                                   // DW_FORM_string
 .b8 0                                   // EOM(1)
 .b8 0                                   // EOM(2)
+.b8 2                                   // Abbreviation Code
+.b8 46                                  // DW_TAG_subprogram
+.b8 0                                   // DW_CHILDREN_no
+.b8 3                                   // DW_AT_name
+.b8 8                                   // DW_FORM_string
+.b8 32                                  // DW_AT_inline
+.b8 11                                  // DW_FORM_data1
+.b8 0                                   // EOM(1)
+.b8 0                                   // EOM(2)
+.b8 3                                   // Abbreviation Code
+.b8 46                                  // DW_TAG_subprogram
+.b8 1                                   // DW_CHILDREN_yes
+.b8 17                                  // DW_AT_low_pc
+.b8 1                                   // DW_FORM_addr
+.b8 18                                  // DW_AT_high_pc
+.b8 1                                   // DW_FORM_addr
+.b8 49                                  // DW_AT_abstract_origin
+.b8 19                                  // DW_FORM_ref4
+.b8 0                                   // EOM(1)
+.b8 0                                   // EOM(2)
+.b8 4                                   // Abbreviation Code
+.b8 29                                  // DW_TAG_inlined_subroutine
+.b8 0                                   // DW_CHILDREN_no
+.b8 49                                  // DW_AT_abstract_origin
+.b8 19                                  // DW_FORM_ref4
+.b8 17                                  // DW_AT_low_pc
+.b8 1                                   // DW_FORM_addr
+.b8 18                                  // DW_AT_high_pc
+.b8 1                                   // DW_FORM_addr
+.b8 88                                  // DW_AT_call_file
+.b8 11                                  // DW_FORM_data1
+.b8 89                                  // DW_AT_call_line
+.b8 11                                  // DW_FORM_data1
+.b8 87                                  // DW_AT_call_column
+.b8 11                                  // DW_FORM_data1
+.b8 0                                   // EOM(1)
+.b8 0                                   // EOM(2)
 .b8 0                                   // EOM(3)
 	}
 	.section	.debug_info
 	{
-.b32 108                                // Length of Unit
+.b32 147                                // Length of Unit
 .b8 2                                   // DWARF version number
 .b8 0
 .b32 .debug_abbrev                      // Offset Into Abbrev. Section
 .b8 8                                   // Address Size (in bytes)
-.b8 1                                   // Abbrev [1] 0xb:0x65 DW_TAG_compile_unit
+.b8 1                                   // Abbrev [1] 0xb:0x8c DW_TAG_compile_unit
 .b8 116                                 // DW_AT_producer
 .b8 114
 .b8 105
@@ -1125,82 +1486,38 @@ $L__func_end0:
 .b8 0
 .b8 2                                   // DW_AT_language
 .b8 0
-.b8 99                                  // DW_AT_name
-.b8 103
-.b8 107
-.b8 106
+.b8 114                                 // DW_AT_name
+.b8 109
+.b8 115
 .b8 110
-.b8 116
-.b8 55
-.b8 113
-.b8 117
-.b8 52
-.b8 97
-.b8 106
-.b8 117
+.b8 111
+.b8 114
+.b8 109
+.b8 95
+.b8 108
+.b8 105
+.b8 110
+.b8 101
 .b8 97
 .b8 114
+.b8 95
+.b8 107
 .b8 101
-.b8 98
-.b8 106
-.b8 105
-.b8 51
-.b8 118
-.b8 116
-.b8 112
-.b8 98
-.b8 54
-.b8 104
-.b8 51
-.b8 121
-.b8 121
-.b8 111
-.b8 118
-.b8 55
-.b8 112
-.b8 51
-.b8 118
-.b8 111
-.b8 121
-.b8 117
-.b8 119
-.b8 99
-.b8 99
+.b8 114
+.b8 110
 .b8 101
-.b8 103
-.b8 116
-.b8 120
-.b8 118
-.b8 106
-.b8 51
-.b8 104
-.b8 50
-.b8 121
-.b8 102
+.b8 108
 .b8 46
 .b8 112
 .b8 121
 .b8 0
 .b32 .debug_line                        // DW_AT_stmt_list
 .b8 47                                  // DW_AT_comp_dir
-.b8 116
-.b8 109
-.b8 112
-.b8 47
-.b8 116
-.b8 111
-.b8 114
-.b8 99
 .b8 104
-.b8 105
-.b8 110
-.b8 100
-.b8 117
-.b8 99
-.b8 116
 .b8 111
-.b8 114
-.b8 95
+.b8 109
+.b8 101
+.b8 47
 .b8 119
 .b8 97
 .b8 110
@@ -1210,8 +1527,88 @@ $L__func_end0:
 .b8 54
 .b8 49
 .b8 47
-.b8 103
+.b8 116
+.b8 112
+.b8 111
+.b8 116
+.b8 47
+.b8 100
+.b8 101
+.b8 109
+.b8 111
+.b8 0
+.b8 2                                   // Abbrev [2] 0x4b:0x1d DW_TAG_subprogram
+.b8 95                                  // DW_AT_name
+.b8 104
+.b8 101
+.b8 108
+.b8 105
+.b8 111
+.b8 110
+.b8 95
+.b8 114
+.b8 109
+.b8 115
+.b8 110
+.b8 111
+.b8 114
+.b8 109
+.b8 95
+.b8 108
+.b8 105
+.b8 110
+.b8 95
 .b8 107
+.b8 101
+.b8 114
+.b8 110
+.b8 101
+.b8 108
+.b8 0
+.b8 1                                   // DW_AT_inline
+.b8 3                                   // Abbrev [3] 0x68:0x2e DW_TAG_subprogram
+.b64 $L__func_begin0                    // DW_AT_low_pc
+.b64 $L__func_end0                      // DW_AT_high_pc
+.b32 75                                 // DW_AT_abstract_origin
+.b8 4                                   // Abbrev [4] 0x7d:0x18 DW_TAG_inlined_subroutine
+.b32 75                                 // DW_AT_abstract_origin
+.b64 $L__tmp1                           // DW_AT_low_pc
+.b64 $L__tmp2                           // DW_AT_high_pc
+.b8 1                                   // DW_AT_call_file
+.b8 71                                  // DW_AT_call_line
+.b8 29                                  // DW_AT_call_column
+.b8 0                                   // End Of Children Mark
+.b8 0                                   // End Of Children Mark
+	}
+	.section	.debug_str
+	{
+$L__info_string0:
+.b8 95                                  // string offset=0 ; _helion_rmsnorm_lin_kernel
+.b8 104
+.b8 101
+.b8 108
+.b8 105
+.b8 111
+.b8 110
+.b8 95
+.b8 114
+.b8 109
+.b8 115
+.b8 110
+.b8 111
+.b8 114
+.b8 109
+.b8 95
+.b8 108
+.b8 105
+.b8 110
+.b8 95
+.b8 107
+.b8 101
+.b8 114
+.b8 110
+.b8 101
+.b8 108
 .b8 0
 	}
 	.section	.debug_macinfo	{	}
