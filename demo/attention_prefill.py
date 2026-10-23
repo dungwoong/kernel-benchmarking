@@ -12,6 +12,7 @@ from compiler_2.kernels.hel.attention import get_kernel as get_hel_kernel
 from compiler_2 import compile_hel
 from helion_utils.kernel_runner import Attention
 from bench_kernels.tilelang import tilelang_flash_attn as TFA
+from bench_kernels.triton.attention import attention as triton_attention, BLOCK_M as TRITON_BLOCK_M, BLOCK_N as TRITON_BLOCK_N
 from pathlib import Path
 
 torch.manual_seed(18)
@@ -150,6 +151,18 @@ class HelAttention(AttentionBaseline):
         # back to (Sq, H, D) so it lines up with the reference
         return o.transpose(0, 1)
 
+class TritonAttention(AttentionBaseline):
+    """hand-written triton (TMA descriptor) attention: takes (B, H, S, D) views of the (B, S, H, D) tensors, any
+    head / seq strides. Needs q_len == kv_len, a multiple of TRITON_BLOCK_M and TRITON_BLOCK_N (no masking)"""
+    def __call__(self, q):
+        # (S, H, D) -> (B, H, S, D), strided views
+        full_K = self.cache_K.unsqueeze(0).transpose(1, 2)
+        full_V = self.cache_V.unsqueeze(0).transpose(1, 2)
+        o = triton_attention(q.transpose(1, 2), full_K, full_V)
+        # back to (B, S, H, D) so it lines up with the reference
+        return o.transpose(1, 2)
+
+
 class TilelangAttention(AttentionBaseline):
     def __init__(self, cache_K, cache_V):
         super().__init__(cache_K, cache_V)
@@ -233,8 +246,7 @@ if __name__ == "__main__":
     helion_V = full_V.unsqueeze(0).transpose(1, 2)
     compiled_attn_helion = Attention.compile(helion_q, helion_K, helion_V)
 
-    pairs = []
-    for name, cls in [
+    attn_baselines = [
         ("attn_torch_sdpa",      TorchSDPABaseline),
         ("attn_inductor",        InductorBaseline),
         ("attn_flashinfer",      FlashInferBaseline),
@@ -242,7 +254,14 @@ if __name__ == "__main__":
         ('attn_hel',             HelAttention),
         ('attn_helion',          HelionAttention),
         ('attn_tilelang',        TilelangAttention),
-    ]:
+    ]
+    if q_len == kv_len and q_len % TRITON_BLOCK_M == 0 and kv_len % TRITON_BLOCK_N == 0:
+        attn_baselines.append(('attn_triton', TritonAttention))
+    else:
+        print(f'skipping attn_triton: needs q_len == kv_len, a multiple of {TRITON_BLOCK_M}/{TRITON_BLOCK_N}')
+
+    pairs = []
+    for name, cls in attn_baselines:
         cK, cV = make_hel_cache() if name == 'attn_hel' else make_cache()
         baseline = cls(cache_K=cK, cache_V=cV)
         if name == 'attn_cdsl':
