@@ -2,7 +2,7 @@
   "block_sizes": [
     128,
     256,
-    32
+    64
   ],
   "loop_orders": [
     [
@@ -11,11 +11,11 @@
     ]
   ],
   "l2_groupings": [
-    1
+    64
   ],
   "range_unroll_factors": [
     0,
-    2
+    3
   ],
   "range_warp_specializes": [],
   "range_num_stages": [],
@@ -25,16 +25,16 @@
   ],
   "range_flattens": [
     null,
-    true
+    null
   ],
   "load_eviction_policies": [
-    "",
-    "first"
+    "first",
+    ""
   ],
   "num_warps": 8,
-  "num_stages": 5,
+  "num_stages": 4,
   "indexing": [
-    "pointer",
+    "tensor_descriptor",
     "tensor_descriptor",
     "tensor_descriptor"
   ],

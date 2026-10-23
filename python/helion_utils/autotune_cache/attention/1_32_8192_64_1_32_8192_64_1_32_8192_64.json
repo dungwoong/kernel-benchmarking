@@ -6,8 +6,8 @@
   ],
   "loop_orders": [
     [
-      0,
-      1
+      1,
+      0
     ]
   ],
   "l2_groupings": [
@@ -15,32 +15,32 @@
   ],
   "range_unroll_factors": [
     0,
-    1
+    4
   ],
   "range_warp_specializes": [],
   "range_num_stages": [
     0,
-    4
+    3
   ],
   "range_multi_buffers": [
     null,
-    true
+    false
   ],
   "range_flattens": [
     null,
-    false
+    null
   ],
   "load_eviction_policies": [
+    "first",
     "last",
-    "",
     "first"
   ],
   "num_warps": 4,
-  "num_stages": 4,
+  "num_stages": 2,
   "indexing": [
     "pointer",
     "tensor_descriptor",
-    "tensor_descriptor",
+    "pointer",
     "tensor_descriptor"
   ],
   "atomic_indexing": [],
