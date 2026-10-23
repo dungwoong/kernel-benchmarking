@@ -3,8 +3,7 @@ Fused attention forward (non-causal), simplified from the Triton fused-attention
 (FlashAttention-2 online softmax in the exp2 domain). Hand-written, 2D, TMA descriptors, one function plus a runner.
 Copied from the tpot repo (demo/kernels/attention.py), where it is also used as an input for the tpot rewrites.
 
-Compared with the tutorial: forward only, non-causal, fp16/bf16 only (no FP8), no warp-specialize / Hopper / Blackwell
-branches, no autotuner, no logsumexp output, and the K/V offsets come from the loop variable instead of being carried.
+Compared with the tutorial: forward only, non-causal, fp16/bf16 only (no FP8), no Blackwell branches, no autotuner, no logsumexp output, and the K/V offsets come from the loop variable instead of being carried.
 The loop-carried values are exactly m_i, l_i and acc.
 
 Shapes: q, k, v are (Z, H, N_CTX, HEAD_DIM) with a unit-stride last dim; the head and sequence strides can be
@@ -13,13 +12,23 @@ anything (e.g. a head-major view of a (batch, seq, head, dim) tensor), as long a
 HEAD_DIM and the tile sizes are constexpr. N_CTX must be a multiple of BLOCK_M and BLOCK_N (there is no masking).
 Each program builds one 2D descriptor per tensor over ITS head (base pointer + head offset, shape [N_CTX, HEAD_DIM],
 the real sequence stride), so the strides only enter through the descriptors. The output is written contiguous.
+
+`persistent=True` (opt in: env ATTN_PERSISTENT=1; off by default, it measured slower) launches one program per SM looping over (head, Q tile) work items; `persistent=False`
+is one program per work item. (`warp_specialize=True` on the K/V loop had no effect on this Triton.)
 """
+
+import os
+
 import torch
 import triton
 import triton.language as tl
 
 BLOCK_M = 128
-BLOCK_N = 128
+BLOCK_N = int(os.environ.get("ATTN_BLOCK_N", "128"))  # keys per K/V tile; N_CTX must be a multiple of it
+# Default launch mode for attention() when `persistent` is not passed. Off by default (it measured slower than one program per
+# tile). Set ATTN_PERSISTENT=1 in the environment (or assign this module attribute before the first call) to get one
+# program per SM looping over work items everywhere attention() is used.
+PERSISTENT = os.environ.get("ATTN_PERSISTENT", "0") == "1"
 
 
 def _alloc_fn(size: int, align: int, stream):
@@ -30,12 +39,19 @@ def _alloc_fn(size: int, align: int, stream):
 triton.set_allocator(_alloc_fn)
 
 
+def _num_sms(device) -> int:
+    return torch.cuda.get_device_properties(device).multi_processor_count
+
+
 @triton.jit
-def _attn_fwd(q, k, v, out, sm_scale,
-              q_stride_h, q_stride_s, k_stride_h, k_stride_s, v_stride_h, v_stride_s, N_CTX,
-              HEAD_DIM: tl.constexpr, BLOCK_M: tl.constexpr, BLOCK_N: tl.constexpr):
-    start_m = tl.program_id(0)
-    off_h = tl.program_id(1).to(tl.int64)  # flattened (batch, head)
+def _attn_tile(tile, q, k, v, out, sm_scale,
+               q_stride_h, q_stride_s, k_stride_h, k_stride_s, v_stride_h, v_stride_s, N_CTX,
+               HEAD_DIM: tl.constexpr, BLOCK_M: tl.constexpr, BLOCK_N: tl.constexpr):
+    """One work item: the BLOCK_M query rows `tile % (N_CTX // BLOCK_M)` of head `tile // (N_CTX // BLOCK_M)`."""
+    num_m = N_CTX // BLOCK_M
+    start_m = tile % num_m
+    off_h = (tile // num_m).to(tl.int64)  # flattened (batch, head)
+    qk_scale = sm_scale * 1.44269504      # 1 / ln(2): softmax in the exp2 domain
 
     # Device-side TMA descriptors over this head's (N_CTX, HEAD_DIM) slice of each tensor.
     q_desc = tl.make_tensor_descriptor(q + off_h * q_stride_h, [N_CTX, HEAD_DIM], [q_stride_s, 1], [BLOCK_M, HEAD_DIM])
@@ -44,8 +60,7 @@ def _attn_fwd(q, k, v, out, sm_scale,
     o_desc = tl.make_tensor_descriptor(out + off_h * N_CTX * HEAD_DIM, [N_CTX, HEAD_DIM], [HEAD_DIM, 1],
                                        [BLOCK_M, HEAD_DIM])
 
-    q_row = start_m * BLOCK_M         # first row of this program's Q tile
-    qk_scale = sm_scale * 1.44269504  # 1 / ln(2): softmax in the exp2 domain
+    q_row = start_m * BLOCK_M  # first row of this work item's Q tile
 
     m_i = tl.full([BLOCK_M], float("-inf"), tl.float32)
     l_i = tl.full([BLOCK_M], 1.0, tl.float32)
@@ -71,12 +86,32 @@ def _attn_fwd(q, k, v, out, sm_scale,
     o_desc.store([q_row, 0], acc.to(q_tile.dtype))
 
 
+@triton.jit
+def _attn_fwd(q, k, v, out, sm_scale,
+              q_stride_h, q_stride_s, k_stride_h, k_stride_s, v_stride_h, v_stride_s, N_CTX, N_HEADS,
+              HEAD_DIM: tl.constexpr, BLOCK_M: tl.constexpr, BLOCK_N: tl.constexpr, PERSISTENT: tl.constexpr):
+    if PERSISTENT:
+        # One program per SM, looping over work items pid, pid + nprog, ... (head-major: neighbours share K/V in L2).
+        total_tiles = (N_CTX // BLOCK_M) * N_HEADS
+        for tile in tl.range(tl.program_id(0), total_tiles, tl.num_programs(0)):
+            _attn_tile(tile, q, k, v, out, sm_scale, q_stride_h, q_stride_s, k_stride_h, k_stride_s, v_stride_h,
+                       v_stride_s, N_CTX, HEAD_DIM, BLOCK_M, BLOCK_N)
+    else:
+        # One program per work item (1D grid over all tiles, head-major).
+        _attn_tile(tl.program_id(0), q, k, v, out, sm_scale, q_stride_h, q_stride_s, k_stride_h, k_stride_s,
+                   v_stride_h, v_stride_s, N_CTX, HEAD_DIM, BLOCK_M, BLOCK_N)
+
+
 def attention(q: torch.Tensor, k: torch.Tensor, v: torch.Tensor, sm_scale: float | None = None,
-              *, num_warps: int = 8, num_stages: int = 3):
+              *, persistent: bool | None = None, num_warps: int = 8, num_stages: int | None = None):
     """
     Non-causal softmax(q k^T * sm_scale) v.  q, k, v are (Z, H, N_CTX, HEAD_DIM), fp16 or bf16, last dim unit-stride,
     any head / sequence strides.  Returns a contiguous (Z, H, N_CTX, HEAD_DIM) tensor.
-    sm_scale defaults to HEAD_DIM ** -0.5.  num_warps / num_stages are untuned starting points.
+    sm_scale defaults to HEAD_DIM ** -0.5.
+    persistent: one program per SM looping over work items (True), or one program per (head, Q tile) (False);
+    None uses the module default PERSISTENT (env ATTN_PERSISTENT=1 turns it on; off by default).
+    num_stages defaults to 2 when persistent (3 needs 8 tile buffers = 262 KB of shared memory, over the 227 KB limit)
+    and to 3 otherwise. num_warps / num_stages are untuned starting points.
     """
     Z, H, n_ctx, head_dim = q.shape
     # assert q.shape == k.shape == v.shape, "q, k, v must have the same shape"
@@ -89,9 +124,14 @@ def attention(q: torch.Tensor, k: torch.Tensor, v: torch.Tensor, sm_scale: float
     # merge (Z, H) into one head axis; .view raises if the strides do not allow it (never for Z == 1)
     q3, k3, v3 = q.view(Z * H, n_ctx, head_dim), k.view(Z * H, n_ctx, head_dim), v.view(Z * H, n_ctx, head_dim)
     out = torch.empty((Z * H, n_ctx, head_dim), dtype=q.dtype, device=q.device)
-    grid = (n_ctx // BLOCK_M, Z * H)
+    if persistent is None:
+        persistent = PERSISTENT
+    if num_stages is None:
+        num_stages = 2 if persistent else 3
+    total_tiles = (n_ctx // BLOCK_M) * Z * H
+    grid = (min(_num_sms(q.device), total_tiles) if persistent else total_tiles,)
     _attn_fwd[grid](q3, k3, v3, out, sm_scale,
-                    q3.stride(0), q3.stride(1), k3.stride(0), k3.stride(1), v3.stride(0), v3.stride(1), n_ctx,
-                    HEAD_DIM=head_dim, BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N,
+                    q3.stride(0), q3.stride(1), k3.stride(0), k3.stride(1), v3.stride(0), v3.stride(1), n_ctx, Z * H,
+                    HEAD_DIM=head_dim, BLOCK_M=BLOCK_M, BLOCK_N=BLOCK_N, PERSISTENT=persistent,
                     num_warps=num_warps, num_stages=num_stages)
     return out.view(Z, H, n_ctx, head_dim)
