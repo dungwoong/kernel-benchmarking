@@ -64,6 +64,7 @@ class InductorBaseline(AttentionBaseline):
         # the matmuls want head-major, so flip the cache to (H, S, D) once here
         super().__init__(cache_K.transpose(0, 1), cache_V.transpose(0, 1))
 
+    @torch.compile
     def __call__(self, q):
         # (B, Sq, H, D) -> (H, Sq, D), a free view
         qh = q.squeeze(0).transpose(0, 1)
