@@ -11,6 +11,7 @@ from torch.nn.attention import SDPBackend, sdpa_kernel
 from compiler_2.kernels.hel.attention import get_kernel as get_hel_kernel, get_kernel2 as get_hel_kernel_simplified
 from c2_utils import compile_hel
 from helion_utils.kernel_runner import Attention
+from bench_kernels.triton.decode_attention import decode_attention as triton_decode_attention
 
 torch.manual_seed(18)
 
@@ -163,6 +164,19 @@ class CDSLAttentionSplitK(AttentionBaseline):
         self.reduce(o, osum, ofinal)
         return ofinal
 
+class TritonDecodeBaseline(AttentionBaseline):
+    """Triton descriptor decode kernel (bench_kernels/triton/decode_attention.py): Q padded to 64 rows by TMA zero-fill.
+    cache is (kv_len, H, D); the kernel reads strides, so these are views and no copy happens."""
+
+    def __call__(self, q):
+        # q (B=1, 1, H, D) -> (1, H, 1, D); cache (S, H, D) -> (1, H, S, D); all free views
+        k = self.cache_K.permute(1, 0, 2).unsqueeze(0)
+        v = self.cache_V.permute(1, 0, 2).unsqueeze(0)
+        o = triton_decode_attention(q.transpose(1, 2), k, v)   # (1, H, 1, D), contiguous
+        # back to (Sq, H, D) like the CDSL baseline
+        return o.squeeze(0).transpose(0, 1)
+
+
 class HelionAttention(AttentionBaseline):
     """helion attention: q/k/v are (B, H, S, D), the layout its reshape expects"""
     def with_kernel(self, kernel):
@@ -289,6 +303,7 @@ if __name__ == "__main__":
         ("attn_flashinfer",      FlashInferBaseline),
         ("attn_fa3",             FA3Baseline),
         ("attn_fa3_flashdecode", FA3FlashDecodeBaseline),
+        ("attn_triton",         TritonDecodeBaseline),
         ("attn_cdsl",            CDSLAttention),
         ('attn_cdsl_splitk',     CDSLAttentionSplitK),
         ('attn_hel',             HelAttention),
